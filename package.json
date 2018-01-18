@@ -1,0 +1,31 @@
+{
+  "name": "smart_contract_example",
+  "version": "1.0.0",
+  "description": "emploreum smart contracts",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "zeppelin-solidity": "^1.5.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IlgizZ/emploreum_smart_contracts.git"
+  },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "truffle"
+  ],
+  "author": "IlgizZ",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IlgizZ/emploreum_smart_contracts/issues"
+  },
+  "homepage": "https://github.com/IlgizZ/emploreum_smart_contracts#readme"
+}
