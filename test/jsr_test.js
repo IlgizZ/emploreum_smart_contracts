@@ -8,6 +8,7 @@ contract('JCR', function(accounts) {
       assert.equal(balance.valueOf(), 1400000, "1400000 wasn't in the first account");
     });
   });
+  
   it("should send coin correctly", function() {
     var token;
 
