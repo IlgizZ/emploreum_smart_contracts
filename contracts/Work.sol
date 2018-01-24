@@ -12,9 +12,15 @@ contract Work {
     address private employee;
     address private company;
     address private owner;
+    bool private disputeStatus;
 
     modifier onlyOwnerOrCompany() {
         require(msg.sender == owner || msg.sender == company);
+        _;
+    }
+
+    modifier onlyEmployeeOrCompany() {
+        require(msg.sender == owner || msg.sender == employee);
         _;
     }
 
@@ -31,6 +37,7 @@ contract Work {
       address _company,
       uint _weekPayment
     ) public {
+        disputeStatus = false;
         weekPayment = _weekPayment;
         position = _position;
         startDate = _startDate;
@@ -47,14 +54,30 @@ contract Work {
         owner = newOwner;
     }
 
+    function solveDisput(address winner) public onlyOwner {
+        require(winner == employee || winner == company);
+        require(disputeStatus);
+
+        if (winner == employee)
+          employee.transfer(weekPayment);
+
+        selfdestruct(company);
+    }
+
+    function disputeStatusOn() public onlyEmployeeOrCompany {
+        disputeStatus = true;
+    }
+
     function sendWeekSalary() public onlyOwnerOrCompany payable returns (int8) {
         require((now - startDate) % 7 < 1 days);
+        require(!disputeStatus);
+
         if (this.balance < weekPayment)
             return -1;
 
         employee.transfer(weekPayment);
 
-        if (this.balance < 2 * weekPayment)
+        if (this.balance < weekPayment)
             return 1;
         return 0;
     }
