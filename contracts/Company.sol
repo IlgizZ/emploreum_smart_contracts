@@ -7,12 +7,7 @@ contract Company {
     string name;
     uint raiting;
 
-    function Company(uint256 _amount) public {
-        owner = msg.sender;
-        mint(owner, _amount);
+    function Company() public {
     }
 
-    function showOwner() public view returns (address ownerAddr) {
-        return owner;
-    }
 }

@@ -1,18 +1,43 @@
 pragma solidity ^0.4.11;
 import "zeppelin-solidity/contracts/math/SafeMath.sol";
+import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
-contract Work {
+contract Work is Ownable {
     using SafeMath for uint;
 
     string private position;
     uint private startDate;
     uint private endDate;
-    uint private weekPayment;
     address private employee;
     address private company;
+    uint private weekPayment;
     address private owner;
     bool private disputeStatus;
+
+    /*
+      frizzing time
+        can be int in range [0; 6]
+          or
+        -1 if there is not enought money
+    */
+    int8 private frizzing;
+
+    function Work (string _position, uint _startDate, uint _endDate, address _empoloyee, address _company,
+      uint _weekPayment) public payable {
+
+        require(msg.value > _weekPayment);
+
+        disputeStatus = false;
+        owner = msg.sender;
+
+        weekPayment = _weekPayment;
+        position = _position;
+        startDate = _startDate;
+        endDate = _endDate;
+        employee = _empoloyee;
+        company = _company;
+    }
 
     modifier onlyOwnerOrCompany() {
         require(msg.sender == owner || msg.sender == company);
@@ -24,34 +49,14 @@ contract Work {
         _;
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
+    function () public payable {
+        owner.transfer(msg.value);
     }
 
-    function Work (
-      string _position,
-      uint _startDate,
-      uint _endDate,
-      address _empoloyee,
-      address _company,
-      uint _weekPayment
-    ) public {
-        disputeStatus = false;
-        weekPayment = _weekPayment;
-        position = _position;
-        startDate = _startDate;
-        endDate = _endDate;
-        employee = _empoloyee;
-        company = _company;
-        owner = msg.sender;
-    }
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    function transferOwnership(address newOwner) public onlyOwner {
-        require(newOwner != address(0));
-        OwnershipTransferred(owner, newOwner);
-        owner = newOwner;
+    function solveFrizzing() public onlyOwnerOrCompany payable {
+        require(msg.value > weekPayment);
+        frizzing = int8((now - startDate) / 1 days % 7);
+        require(frizzing > 0);
     }
 
     function solveDisput(address winner) public onlyOwner {
@@ -59,7 +64,7 @@ contract Work {
         require(disputeStatus);
 
         if (winner == employee)
-          employee.transfer(weekPayment);
+            employee.transfer(weekPayment);
 
         selfdestruct(company);
     }
@@ -68,12 +73,22 @@ contract Work {
         disputeStatus = true;
     }
 
+    /*
+        return status:
+            -1 there is no enough money
+            1 there is no enough money for next week
+            0 ok, all right
+    */
+
     function sendWeekSalary() public onlyOwnerOrCompany payable returns (int8) {
-        require((now - startDate) % 7 < 1 days);
+        require(frizzing > 0);
+        require((now - startDate + uint(frizzing)) % 7 < 1 days);
         require(!disputeStatus);
 
-        if (this.balance < weekPayment)
+        if (this.balance < weekPayment) {
+            frizzing = -1;
             return -1;
+        }
 
         employee.transfer(weekPayment);
 
@@ -82,7 +97,8 @@ contract Work {
         return 0;
     }
 
-    function getWorkData () public view returns (string, uint, uint, address, address) {
-        return (position, startDate, endDate, employee, company);
+    function getWorkData () public view returns (string, uint, uint, address, address, uint, address, bool, int8) {
+        return (position, startDate, endDate, employee, company, weekPayment, owner, disputeStatus, frizzing);
     }
+
 }

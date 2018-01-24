@@ -1,18 +1,14 @@
 pragma solidity ^0.4.11;
+import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
-contract Main {
+contract Main is Ownable {
 
-    address[] employees;
-    address[] companies;
-    address[] works;
+    address[] private employees;
+    address[] private companies;
+    address[] private works;
 
-    function Main(uint256 _amount) public {
-        owner = msg.sender;
-        mint(owner, _amount);
+    function Main() public {
     }
 
-    function showOwner() public view returns (address ownerAddr) {
-        return owner;
-    }
 }

@@ -6,14 +6,11 @@ contract Employee {
     address[] workHistory;
     string firstName;
     string lastName;
+    bool isAnonymous;
     uint raiting;
 
-    function Employee(uint256 _amount) public {
-        owner = msg.sender;
-        mint(owner, _amount);
+    function Employee() public {
+
     }
 
-    function showOwner() public view returns (address ownerAddr) {
-        return owner;
-    }
 }
