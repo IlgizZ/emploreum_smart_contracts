@@ -8,9 +8,10 @@ module.exports = function(deployer) {
   var position = "programmer";
   var startDate = 1516827609;
   var endDate = 1516924800;
-  var employee = "0x79af3df25d2923929bc023f5bb9e618d314dfc57";
-  var company = "0xe1dc59294a9ab37483fcefca969693fd166b236a";
+  var employee = web3.eth.accounts[2];
+  var company = web3.eth.accounts[3];
   var weekPayment = 10**17;
+  var initPayment = 10**18;
 
-  deployer.deploy(Work, position, startDate, endDate, employee, company, weekPayment, {value: 10**18});
+  deployer.deploy(Work, position, startDate, endDate, employee, company, weekPayment, {value: initPayment});
 };

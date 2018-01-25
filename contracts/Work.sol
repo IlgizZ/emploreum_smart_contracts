@@ -23,6 +23,8 @@ contract Work is Ownable {
     */
     int8 private frizzing;
 
+    event WeekPaymentSent(int8 code);
+
     function Work (string _position, uint _startDate, uint _endDate, address _empoloyee, address _company,
       uint _weekPayment) public payable {
 
@@ -80,21 +82,23 @@ contract Work is Ownable {
             0 ok, all right
     */
 
-    function sendWeekSalary() public onlyOwnerOrCompany payable returns (int8) {
-        require(frizzing > 0);
+    function sendWeekSalary() public onlyOwnerOrCompany payable {
+        require(frizzing >= 0 && frizzing < 7);
         require((now - startDate + uint(frizzing)) % 7 < 1 days);
         require(!disputeStatus);
 
+        int8 code;
+
         if (this.balance < weekPayment) {
             frizzing = -1;
-            return -1;
+            code = -1;
+        } else {
+            employee.transfer(weekPayment);
+
+            if (this.balance < weekPayment)
+                code = 1;
         }
-
-        employee.transfer(weekPayment);
-
-        if (this.balance < weekPayment)
-            return 1;
-        return 0;
+        WeekPaymentSent(code);
     }
 
     function getWorkData () public view returns (string, uint, uint, address, address, uint, address, bool, int8) {
