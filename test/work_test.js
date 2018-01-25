@@ -6,9 +6,9 @@ var main = web3.eth.accounts[0];
 var employee = web3.eth.accounts[2];
 var company = web3.eth.accounts[3]
 var anotherAccount = web3.eth.accounts[4];
-var weekPayment = 10**17;
 var startDate = 1516827609;
-var initPayment = 10**18;
+var weekPayment = Math.pow(10, 17);
+var initPayment = Math.pow(10, 18);
 
 contract('Work', function(accounts) {
   it("should return init data correctly", function() {
@@ -31,6 +31,7 @@ contract('Work', function(accounts) {
 
   it("should throw an exception if employee confirm week payment", function() {
     return Work.deployed().then(function(instance) {
+
       return instance.sendWeekSalary({from: employee});
     }).then(function(data) {
       assert(false, "sendWeekSalary was supposed to throw but didn't.");
@@ -118,13 +119,14 @@ contract('Work', function(accounts) {
   });
 
   it("should solve disput with employee winner", function() {
-    var contract;
+    var contract, contractBalance;
     var employeeInitBalance = web3.eth.getBalance(employee);
     var companyInitBalance = web3.eth.getBalance(company);
 
     return Work.deployed().then(function(instance) {
 
       contract = instance;
+      contractBalance = web3.eth.getBalance(contract.address);
       return contract.disputeStatusOn({from: employee});
 
     }).then(function() {
@@ -134,12 +136,16 @@ contract('Work', function(accounts) {
     }).then(function(data) {
       var employeeEndBalance = web3.eth.getBalance(employee);
       var companyEndBalance = web3.eth.getBalance(company);
-      console.log(companyEndBalance.toString());
-      console.log(companyInitBalance.plus(initPayment - weekPayment).toString());
-      console.log(data);
-      assert(employeeEndBalance.eq(employeeInitBalance.plus(weekPayment)), "solveDisput wasn't send correct payment to employee");
-      assert(companyEndBalance.eq(companyInitBalance.plus(initPayment - weekPayment)), "solveDisput wasn't send correct payment to employee");
+      var a = employeeEndBalance;
+      a = a.minus(employeeInitBalance);
 
+      console.log(a.toString());
+      console.log(data);
+      console.log(employeeInitBalance.toString());
+      console.log(employeeEndBalance.toString());
+
+      assert(employeeEndBalance.eq(employeeInitBalance.plus(weekPayment)), "solveDisput wasn't send correct payment to employee");
+      assert(companyEndBalance.eq(companyInitBalance.plus(contractBalance).minus(weekPayment)), "solveDisput wasn't send correct payment to company");
     })
   });
 });

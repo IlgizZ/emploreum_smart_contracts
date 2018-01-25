@@ -1,4 +1,4 @@
-pragma solidity ^0.4.11;
+/* pragma solidity ^0.4.11;
 import "zeppelin-solidity/contracts/token/MintableToken.sol";
 import "zeppelin-solidity/contracts/payment/PullPayment.sol";
 
@@ -17,4 +17,4 @@ contract JCR is MintableToken {
     function showOwner() public view returns (address ownerAddr) {
         return owner;
     }
-}
+} */
