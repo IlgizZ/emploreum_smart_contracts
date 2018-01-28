@@ -56,7 +56,7 @@ contract('Work', function(accounts) {
 
   it("should send week paymnet to employee", function() {
     var employeeInitBalance = web3.eth.getBalance(employee);
-    var contract ;
+    var contract;
 
     return Work.deployed().then(function(instance) {
 
@@ -67,6 +67,10 @@ contract('Work', function(accounts) {
       assert.equal(data.logs[0].args.code, 0, "sendWeekSalary return " + data.logs[0].args.code + " code.");
 
       var employeeEndBalance = web3.eth.getBalance(employee);
+      var a = employeeEndBalance;
+        a = a.minus(employeeInitBalance);
+
+        console.log(a.toString());
       var isEqual = employeeEndBalance.eq(employeeInitBalance.plus(weekPayment));
       assert(isEqual, "sendWeekSalary wasn't send correct payment to employee.");
     })
@@ -119,30 +123,23 @@ contract('Work', function(accounts) {
   });
 
   it("should solve disput with employee winner", function() {
-    var contract, contractBalance;
-    var employeeInitBalance = web3.eth.getBalance(employee);
-    var companyInitBalance = web3.eth.getBalance(company);
+    var contract, contractBalance, employeeInitBalance, companyInitBalance;
 
     return Work.deployed().then(function(instance) {
 
       contract = instance;
       contractBalance = web3.eth.getBalance(contract.address);
       return contract.disputeStatusOn({from: employee});
+    }).then(function(data) {
 
-    }).then(function() {
+      employeeInitBalance = web3.eth.getBalance(employee);
+      companyInitBalance = web3.eth.getBalance(company);
 
       return contract.solveDisput(employee, {from: main});
-
     }).then(function(data) {
+
       var employeeEndBalance = web3.eth.getBalance(employee);
       var companyEndBalance = web3.eth.getBalance(company);
-      var a = employeeEndBalance;
-      a = a.minus(employeeInitBalance);
-
-      console.log(a.toString());
-      console.log(data);
-      console.log(employeeInitBalance.toString());
-      console.log(employeeEndBalance.toString());
 
       assert(employeeEndBalance.eq(employeeInitBalance.plus(weekPayment)), "solveDisput wasn't send correct payment to employee");
       assert(companyEndBalance.eq(companyInitBalance.plus(contractBalance).minus(weekPayment)), "solveDisput wasn't send correct payment to company");

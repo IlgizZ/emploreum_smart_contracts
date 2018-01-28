@@ -11,4 +11,11 @@ contract Main is Ownable {
     function Main() public {
     }
 
+    function () public payable {
+        owner.transfer(msg.value);
+    }
+
+    function addWork(address work) public onlyOwner {
+        disputeStatus = true;
+    }
 }
