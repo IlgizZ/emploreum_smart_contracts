@@ -11,8 +11,20 @@ contract Employee is Ownable {
         Company company;
     }
 
+    struct Specializations {
+      string profile;
+      Skill[] skills;
+    }
+
+    struct Skill {
+        string skill;
+        uint raiting;
+    }
+
     Contract[] public workHistory;
     Work[] public currentWorks;
+    /* Specializations[] public skills; */
+
     uint public raiting;
     string private firstName;
     string private lastName;
@@ -49,6 +61,10 @@ contract Employee is Ownable {
         currentWorks.push(Work(work, company));
     }
 
+    /* function getSpecializations() public view returns(Specializations[]) {
+        return skills;
+    } */
+
     function changeRaiting(uint newRaiting) public onlyOwner {
         raiting = newRaiting;
     }
@@ -61,4 +77,17 @@ contract Employee is Ownable {
             }
         }
     }
+
+    /* function fillSkils(string[] profiles, string[] skillNames, uint[] skillRaitings, uint[] counts) public onlyOwner {
+        uint counter = 0;
+
+        for (uint i = 0; i < currentWorks.length; i++) {
+            Skill[] memory _skills = new Skill[](counts[i]);
+            for (uint j = 0; j < counts[i]; j++) {
+                _skills[j] = Skill(skillNames[j + counter], skillRaitings[j + counter]);
+                counter++;
+            }
+             skills.push(Specializations(profiles[i], _skills)); 
+        }
+    } */
 }
