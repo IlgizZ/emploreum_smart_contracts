@@ -1,17 +1,17 @@
-var JCR = artifacts.require("./JCR.sol");
-var Work = artifacts.require("./Work.sol");
+var Contract = artifacts.require("./Contract.sol");
+var Main = artifacts.require("./Main.sol");
 
 module.exports = function(deployer) {
-  const tokenAmount = 1400000;
-  deployer.deploy(JCR, tokenAmount);
 
   var position = "programmer";
-  var startDate = 1516827609;
-  var endDate = 1516924800;
+  var startDate = 1716827609;
+  var endDate = 1716924800;
   var employee = web3.eth.accounts[2];
+  var main = web3.eth.accounts[0];
   var company = web3.eth.accounts[3];
-  var weekPayment = Math.pow(10, 17);
-  var initPayment = Math.pow(10, 18);
+  var weekPayment = Math.pow(10, 12);
+  var initPayment = Math.pow(10, 13);
 
-  deployer.deploy(Work, position, startDate, endDate, employee, company, weekPayment, {value: initPayment});
+  deployer.deploy(Contract, position, startDate, endDate, employee, company, weekPayment, {value: initPayment});
+  deployer.deploy(Main);
 };

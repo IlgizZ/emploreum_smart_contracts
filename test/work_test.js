@@ -1,14 +1,14 @@
-var Work = artifacts.require("./Work.sol");
+var Work = artifacts.require("./Contract.sol");
 
 var position = "programmer";
-var endDate = 1516924800;
+var endDate = 1716924800;
 var main = web3.eth.accounts[0];
 var employee = web3.eth.accounts[2];
 var company = web3.eth.accounts[3]
 var anotherAccount = web3.eth.accounts[4];
-var startDate = 1516827609;
-var weekPayment = Math.pow(10, 17);
-var initPayment = Math.pow(10, 18);
+var startDate = 1716827609;
+var weekPayment = Math.pow(10, 12);
+var initPayment = Math.pow(10, 13);
 
 contract('Work', function(accounts) {
   it("should return init data correctly", function() {
@@ -25,7 +25,6 @@ contract('Work', function(accounts) {
       assert.equal(data[6], accounts[0], "weekPayment field initialization wasn't correct");
       assert.equal(data[7], false, "weekPayment field initialization wasn't correct");
       assert.equal(data[8], 0, "weekPayment field initialization wasn't correct");
-
     });
   });
 
@@ -67,12 +66,8 @@ contract('Work', function(accounts) {
       assert.equal(data.logs[0].args.code, 0, "sendWeekSalary return " + data.logs[0].args.code + " code.");
 
       var employeeEndBalance = web3.eth.getBalance(employee);
-      var a = employeeEndBalance;
-        a = a.minus(employeeInitBalance);
 
-        console.log(a.toString());
-      var isEqual = employeeEndBalance.eq(employeeInitBalance.plus(weekPayment));
-      assert(isEqual, "sendWeekSalary wasn't send correct payment to employee.");
+      assert(employeeEndBalance.eq(employeeInitBalance.plus(weekPayment)), "sendWeekSalary wasn't send correct payment to employee.");
     })
   });
 
