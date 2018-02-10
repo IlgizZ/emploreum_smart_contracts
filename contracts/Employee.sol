@@ -11,21 +11,19 @@ contract Employee is Ownable {
         Company company;
     }
 
-    struct Specializations {
-      string profile;
-      Skill[] skills;
-    }
-
     struct Skill {
-        string skill;
+        uint specializationId;
+        bytes32[] skill;
         uint raiting;
     }
 
     Contract[] public workHistory;
     Work[] public currentWorks;
-    /* Specializations[] public skills; */
-
     uint public raiting;
+    uint[] public positionCodes;
+    uint[] public skillCodes;
+    mapping (uint => uint) private skillToPosition;
+
     string private firstName;
     string private lastName;
     string private email;
@@ -36,12 +34,19 @@ contract Employee is Ownable {
         _;
     }
 
-    function Employee(string _firstName, string _lastName, string _email, uint _raiting, address _employee) public {
+    function Employee(string _firstName, string _lastName, string _email, uint _raiting, address _employee,
+      uint[] _positionCodes, uint[] _skillCodes, uint[] _skillToPosition) public {
         firstName = _firstName;
         lastName = _lastName;
         email = _email;
         raiting = _raiting;
         employeeAddress = _employee;
+        positionCodes = _positionCodes;
+        skillCodes = _skillCodes;
+
+        for (uint i = 0; i < _skillToPosition.length; i++) {
+            skillToPosition[skillCodes[i]] = _skillToPosition[i];
+        }
     }
 
     function () public payable {
@@ -61,10 +66,6 @@ contract Employee is Ownable {
         currentWorks.push(Work(work, company));
     }
 
-    /* function getSpecializations() public view returns(Specializations[]) {
-        return skills;
-    } */
-
     function changeRaiting(uint newRaiting) public onlyOwner {
         raiting = newRaiting;
     }
@@ -78,16 +79,5 @@ contract Employee is Ownable {
         }
     }
 
-    /* function fillSkils(string[] profiles, string[] skillNames, uint[] skillRaitings, uint[] counts) public onlyOwner {
-        uint counter = 0;
 
-        for (uint i = 0; i < currentWorks.length; i++) {
-            Skill[] memory _skills = new Skill[](counts[i]);
-            for (uint j = 0; j < counts[i]; j++) {
-                _skills[j] = Skill(skillNames[j + counter], skillRaitings[j + counter]);
-                counter++;
-            }
-             skills.push(Specializations(profiles[i], _skills)); 
-        }
-    } */
 }

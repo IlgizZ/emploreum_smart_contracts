@@ -8,7 +8,9 @@ import "./Company.sol";
 contract Contract is Ownable {
     using SafeMath for uint;
 
-    string private position;
+    uint[] private positionCodes;
+    uint[] private skillCodes;
+
     uint private startDate;
     uint private endDate;
     Employee private employee;
@@ -30,8 +32,9 @@ contract Contract is Ownable {
 
     event WeekPaymentSent(int code);
 
-    function Contract (string _position, uint _startDate, uint _endDate, Employee _empoloyee, Company _company,
-      uint _weekPayment) public payable {
+    function Contract (uint[] _positionCodes, uint[] _skillCodes,
+                            uint _startDate, uint _endDate, Employee _empoloyee,
+                            Company _company, uint _weekPayment) public payable {
 
         require(msg.value >= _weekPayment);
         require(_startDate >= now);
@@ -41,7 +44,8 @@ contract Contract is Ownable {
         owner = msg.sender;
 
         weekPayment = _weekPayment;
-        position = _position;
+        positionCodes = _positionCodes;
+        skillCodes = _skillCodes;
         startDate = _startDate;
         endDate = _endDate;
         employee = _empoloyee;
@@ -118,8 +122,11 @@ contract Contract is Ownable {
         frizzing = -200;
     }
 
-    function getWorkData () public view returns (string, uint, uint, Employee, Company, uint, address, bool, int) {
-        return (position, startDate, endDate, employee, company, weekPayment, owner, disputeStatus, frizzing);
+    function getWorkData () public view
+        returns (uint[], uint[], uint, uint, Employee, Company, uint, address, bool, int) {
+
+            return (positionCodes, skillCodes,
+                    startDate, endDate, employee, company, weekPayment, owner, disputeStatus, frizzing);
     }
 
     function contractStatus() public view returns(int) {

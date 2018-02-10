@@ -18,34 +18,31 @@ var initPayment = Math.pow(10, 18);
 //int256 is cheapest
 
 contract('Main', function(accounts) {
-  // it("should return init data correctly", function() {
-  //   var contract, gasFromContract, balance, siparate;
-  //   var accRange = [...Array(10).keys()];
-  //
-  //   return Main.deployed().then(function(instance) {
-  //
-  //     contract = instance;
-  //
-  //     var contracts = [];
-  //
-  //     contracts.push(contract.changei8(Math.pow(10, 30)));
-  //     contracts.push(contract.changei16(Math.pow(10, 30)));
-  //     contracts.push(contract.changei32(Math.pow(10, 30)));
-  //     contracts.push(contract.changei64(Math.pow(10, 30)));
-  //     contracts.push(contract.changei128(Math.pow(10, 30)));
-  //     contracts.push(contract.changei256(Math.pow(10, 30)));
-  //
-  //     return Promise.all(contracts);
-  //   }).then(function(results) {
-  //     results.map(data => {
-  //       console.log(data.receipt.gasUsed);
-  //     })
-  //     // return contract.getContract(0);
-  //   }).then(function(address) {
-  //
-  //     // console.log(address);
-  //   });
-  // });
+  it("should return init data correctly", function() {
+    var contract, gasFromContract, balance, siparate;
+
+    return Main.deployed().then(function(instance) {
+
+      contract = instance;
+
+      var contracts = [];
+
+      web3.eth.sendTransaction({from: accounts[0], to:'0xA90C34C824687f74Ed24406e7621706130F8EF15', value: 21000000, gas: 210000}, function callback(data) {
+
+        console.log(data);
+        console.log('sent');
+      });
+
+    }).then(function(results) {
+      results.map(data => {
+        console.log(data.receipt.gasUsed);
+      })
+      // return contract.getContract(0);
+    }).then(function(address) {
+
+      // console.log(address);
+    });
+  });
   //
   // it("should return init data correctly", function() {
   //   var contract, gasFromContract, balance, siparate;

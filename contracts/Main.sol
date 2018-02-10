@@ -12,13 +12,19 @@ contract Main is Ownable {
     Contract[] private contracts;
 
     function () public payable {
-        owner.transfer(msg.value);
+
     }
 
+    function Main() public payable {}
+
     function newEmployee(string _firstName, string _lastName, string _email,
-        uint _raiting, address _address) public onlyOwner {
-        Employee employee = new Employee(_firstName, _lastName, _email, _raiting, _address);
+                            uint _raiting, address _address, uint[] _positionCodes,
+                            uint[] _skillCodes, uint[] _skillToPosition) public onlyOwner {
+
+        Employee employee = new Employee(_firstName, _lastName, _email, _raiting,
+                                            _address, _positionCodes, _skillCodes, _skillToPosition);
         employees.push(employee);
+
     }
 
     function newCompany(string _name, uint _raiting, address _address) public onlyOwner {
@@ -26,9 +32,12 @@ contract Main is Ownable {
         companies.push(company);
     }
 
-    function newContract(string _position, uint _startDate, uint _endDate, Employee _empoloyee, Company _company,
-      uint _weekPayment) public onlyOwner {
-        Contract _contract = new Contract(_position, _startDate, _endDate, _empoloyee, _company, _weekPayment);
+    function newContract(uint[] _skillCodes, uint[] _skillToPosition,
+                            uint _startDate, uint _endDate, Employee _empoloyee,
+                            Company _company, uint _weekPayment) public onlyOwner {
+
+        Contract _contract = new Contract(_skillCodes, _skillToPosition,
+                                            _startDate, _endDate, _empoloyee, _company, _weekPayment);
         contracts.push(_contract);
     }
 
