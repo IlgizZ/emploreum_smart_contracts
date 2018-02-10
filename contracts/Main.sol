@@ -49,8 +49,20 @@ contract Main is Ownable {
         return employees[index];
     }
 
+    function getCompany(uint index) public view returns (Company) {
+        return companies[index];
+    }
+
+    function getContract(uint index) public view returns (Contract) {
+        return contracts[index];
+    }
+
     function kill() public {
         selfdestruct(owner);
+    }
+
+    function test(uint index, uint count) public view returns (int) {
+        return employees[index].test(index, count);
     }
 
 }

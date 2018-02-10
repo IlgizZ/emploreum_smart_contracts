@@ -5,7 +5,6 @@ var employee = web3.eth.accounts[2];
 var company = web3.eth.accounts[3]
 var anotherAccount = web3.eth.accounts[4];
 
-
 contract('Main', function(accounts) {
   it("should return init data correctly", function() {
     var contract, gasFromContract, balance, siparate;

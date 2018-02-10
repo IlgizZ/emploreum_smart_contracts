@@ -61,6 +61,15 @@ contract Employee is Ownable {
         return 0;
     }
 
+    function test(uint index, uint count) public view returns (int) {
+        int sum = 0;
+        for (uint i = 0; i < count; i++) {
+            Contract work = workHistory[index];
+            sum += work.getContractStatus();
+        }
+        return sum;
+    }
+
     function addWork(Contract work, Company company) public onlyOwner {
         workHistory.push(work);
         currentWorks.push(Work(work, company));
@@ -78,6 +87,4 @@ contract Employee is Ownable {
             }
         }
     }
-
-
 }

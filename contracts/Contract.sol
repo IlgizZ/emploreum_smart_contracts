@@ -24,6 +24,8 @@ contract Contract is Ownable {
 
         -1          freezing - not enought money for next week payment
 
+        -100        contract not start
+
         -200        contract ended
 
         -500        contract ended with disput
@@ -36,7 +38,6 @@ contract Contract is Ownable {
                             uint _startDate, uint _endDate, Employee _empoloyee,
                             Company _company, uint _weekPayment) public payable {
 
-        require(msg.value >= _weekPayment);
         require(_startDate >= now);
         require(_endDate > _startDate);
 
@@ -50,6 +51,7 @@ contract Contract is Ownable {
         endDate = _endDate;
         employee = _empoloyee;
         company = _company;
+        frizzing = -100;
     }
 
     modifier onlyOwnerOrCompany() {
@@ -118,6 +120,11 @@ contract Contract is Ownable {
         /* selfdestruct(company); */
     }
 
+    function start() public payable onlyOwnerOrCompany () {
+      require(frizzing == -100);
+      frizzing = int(((now - startDate) / 1 days + 1 days) % 7);
+    }
+
     function finish() public onlyOwner {
         frizzing = -200;
     }
@@ -129,7 +136,7 @@ contract Contract is Ownable {
                     startDate, endDate, employee, company, weekPayment, owner, disputeStatus, frizzing);
     }
 
-    function contractStatus() public view returns(int) {
+    function getContractStatus() public view returns(int) {
         return frizzing;
     }
 

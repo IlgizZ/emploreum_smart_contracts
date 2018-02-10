@@ -77,6 +77,4 @@ contract Company is Ownable {
         }
         return index;
     }
-
-
 }
