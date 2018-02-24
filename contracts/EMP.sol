@@ -1,20 +1,20 @@
- /* pragma solidity ^0.4.11;
+pragma solidity ^0.4.11;
 import "zeppelin-solidity/contracts/token/MintableToken.sol";
 import "zeppelin-solidity/contracts/payment/PullPayment.sol";
 
 
-contract JCR {
+contract EMP {
 
-    string public name = "Jincor Token";
-    string public symbol = "JCR";
+    string public name = "Emploreym";
+    string public symbol = "EMP";
     uint public decimals = 18;
     address owner;
 
-    function JCR(uint256 _amount) public {
+    function EMP(uint256 _amount) public {
         owner = msg.sender;
     }
 
     function showOwner() public view returns (address ownerAddr) {
         return owner;
     }
-} */
+}

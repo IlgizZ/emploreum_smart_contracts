@@ -1,7 +1,6 @@
 pragma solidity ^0.4.11;
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
-import "./Employee.sol";
-import "./Contract.sol";
+import "./Work.sol";
 
 
 contract Company is Ownable {
@@ -11,9 +10,9 @@ contract Company is Ownable {
         bool hired;
     }
 
-    Worker[] private employees;
     string public name;
-    uint public raiting;
+    uint public rating;
+    Worker[] private employees;
     address private companyAddress;
 
     modifier onlyOwnerOrCompany() {
@@ -21,9 +20,9 @@ contract Company is Ownable {
         _;
     }
 
-    function Company(string _name, uint _raiting, address _companyAddress) public {
+    function Company(string _name, uint _rating, address _companyAddress) public {
         name = _name;
-        raiting = _raiting;
+        rating = _rating;
         companyAddress = _companyAddress;
     }
 
@@ -32,7 +31,7 @@ contract Company is Ownable {
     }
 
     function changeRaiting(uint newRaiting) public onlyOwner {
-        raiting = newRaiting;
+        rating = newRaiting;
     }
 
     function addEmployee(address _employee) public onlyOwnerOrCompany {
@@ -53,16 +52,6 @@ contract Company is Ownable {
 
         employees[index].hired = false;
         employees.length--;
-    }
-
-    function dispute(address worker) public onlyOwnerOrCompany {
-        Employee employee = Employee(worker);
-        Contract work = Contract(employee.getSenderContract());
-        work.disputeStatusOn();
-    }
-
-    function sendWeekSalary(Contract work) public payable {
-        work.sendWeekSalary.value(msg.value)();
     }
 
     function findEmployee(address employee) private view returns (uint index) {

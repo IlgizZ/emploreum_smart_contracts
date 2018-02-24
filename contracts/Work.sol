@@ -1,20 +1,16 @@
 pragma solidity ^0.4.11;
-import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
-import "./Employee.sol";
-import "./Company.sol";
 
 
-contract Contract is Ownable {
-    using SafeMath for uint;
+contract Work is Ownable {
 
     uint[] private positionCodes;
     uint[] private skillCodes;
 
+    uint private duration;
     uint private startDate;
-    uint private endDate;
-    Employee private employee;
-    Company private company;
+    address private employee;
+    address private company;
     uint private weekPayment;
     address private owner;
     bool private disputeStatus;
@@ -34,12 +30,11 @@ contract Contract is Ownable {
 
     event WeekPaymentSent(int code);
 
-    function Contract (uint[] _positionCodes, uint[] _skillCodes,
-                            uint _startDate, uint _endDate, Employee _empoloyee,
-                            Company _company, uint _weekPayment) public payable {
+    function Work (uint[] _positionCodes, uint[] _skillCodes,
+                            uint _duration, address _empoloyee,
+                            address _company, uint _weekPayment) public payable {
 
-        require(_startDate >= now);
-        require(_endDate > _startDate);
+        require(_duration > 0);
 
         disputeStatus = false;
         owner = msg.sender;
@@ -47,20 +42,19 @@ contract Contract is Ownable {
         weekPayment = _weekPayment;
         positionCodes = _positionCodes;
         skillCodes = _skillCodes;
-        startDate = _startDate;
-        endDate = _endDate;
+        duration = _duration;
         employee = _empoloyee;
         company = _company;
         frizzing = -100;
     }
 
     modifier onlyOwnerOrCompany() {
-        require(msg.sender == owner || msg.sender == address(company));
+        require(msg.sender == owner || msg.sender == company);
         _;
     }
 
     modifier onlyEmployeeOrCompany() {
-        require(msg.sender == owner || msg.sender == address(employee));
+        require(msg.sender == owner || msg.sender == employee);
         _;
     }
 
@@ -68,7 +62,7 @@ contract Contract is Ownable {
         owner.transfer(msg.value);
     }
 
-    function deposite() public payable {
+    function deposit() public payable {
         require(frizzing >= -1);
     }
 
@@ -108,8 +102,8 @@ contract Contract is Ownable {
         disputeStatus = true;
     }
 
-    function solveDisput(address winner) public onlyOwner {
-        require(winner == address(employee) || winner == address(company));
+    function solveDispute(address winner) public onlyOwner {
+        require(winner == employee || winner == company);
         require(disputeStatus);
 
         frizzing = -500;
@@ -117,12 +111,16 @@ contract Contract is Ownable {
         if (winner == address(employee))
             employee.transfer(weekPayment);
 
+        company.transfer(weekPayment);
         /* selfdestruct(company); */
     }
 
     function start() public payable onlyOwnerOrCompany () {
-      require(frizzing == -100);
-      frizzing = int(((now - startDate) / 1 days + 1 days) % 7);
+        require(frizzing == -100);
+        require(msg.value > weekPayment);
+        /* frizzing = int(((now - startDate) / 1 days + 1 days) % 7); */
+        startDate = now;
+        frizzing = 0;
     }
 
     function finish() public onlyOwner {
@@ -130,10 +128,10 @@ contract Contract is Ownable {
     }
 
     function getWorkData () public view
-        returns (uint[], uint[], uint, uint, Employee, Company, uint, address, bool, int) {
+        returns (uint[], uint[], uint, uint, address, address, uint, address, bool, int) {
 
             return (positionCodes, skillCodes,
-                    startDate, endDate, employee, company, weekPayment, owner, disputeStatus, frizzing);
+                    startDate, duration, employee, company, weekPayment, owner, disputeStatus, frizzing);
     }
 
     function getContractStatus() public view returns(int) {

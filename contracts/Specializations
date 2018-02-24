@@ -1,0 +1,79 @@
+pragma solidity ^0.4.11;
+import "zeppelin-solidity/contracts/ownership/Ownable.sol";
+
+
+contract Specializations is Ownable {
+
+    string[] private specializations;
+    string[] private skills;
+
+    function Specializations() public {}
+
+    function () public payable {revert();}
+
+    function addSpecialization(string specialization) public onlyOwner {
+        specializations.push(specialization);
+    }
+
+    function addSkill(string skill) public onlyOwner {
+        skills.push(skill);
+    }
+
+    function removeSpecialization(string specialization) public onlyOwner {
+        uint index = 0;
+        uint length = specializations.length - 1;
+        string[] memory tmp = new string[length];
+
+        for (index; index < specializations.length; index++) {
+            if (specializations[index] == specialization)
+                break;
+
+            tmp[index] = specializations[index];
+        }
+
+        if (index == specialization.length)
+            revert();
+        index++;
+
+        for (index; index < specializations.length; index++) {
+            tmp[index - 1] = specializations[index];
+        }
+
+        specializations = tmp;
+    }
+
+    function removeSkill(string skill) public onlyOwner {
+        uint index = 0;
+        string[] memory tmp = new string[skills.length - 1];
+
+        for (index; index < skills.length; index++) {
+            if (skills[index] == skill)
+                break;
+
+            tmp[index] = skills[index];
+        }
+
+        if (index == skills.length)
+            revert();
+        index++;
+
+        for (index; index < skills.length; index++) {
+            tmp[index - 1] = skills[index];
+        }
+
+        skills = tmp;
+    }
+
+    function getSpecializationByCode(uint code) public view returns (string, string) {
+        uint skill = code & 4096;
+        uint specialization = code >> 12;
+        require(skill < skills.length && specialization < specializations.length);
+
+        return (specializations[specialization], skills[skill]);
+    }
+
+    function kill() public {
+        selfdestruct(owner);
+    }
+
+}

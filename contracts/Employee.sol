@@ -1,28 +1,24 @@
 pragma solidity ^0.4.11;
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
-import "./Contract.sol";
-import "./Company.sol";
+import "./Work.sol";
 
 
 contract Employee is Ownable {
 
-    struct Work {
-        Contract work;
-        Company company;
+    struct EmployeeWork {
+        address work;
+        address company;
+        bool isFinish;
     }
 
     struct Skill {
-        uint specializationId;
-        bytes32[] skill;
-        uint raiting;
+        uint skillCode;
+        uint rating;
     }
 
-    Contract[] public workHistory;
-    Work[] public currentWorks;
-    uint public raiting;
-    uint[] public positionCodes;
-    uint[] public skillCodes;
-    mapping (uint => uint) private skillToPosition;
+    EmployeeWork[] public workHistory;
+    uint public rating;
+    Skill[] public skills;
 
     string private firstName;
     string private lastName;
@@ -34,55 +30,65 @@ contract Employee is Ownable {
         _;
     }
 
-    function Employee(string _firstName, string _lastName, string _email, uint _raiting, address _employee,
-      uint[] _positionCodes, uint[] _skillCodes, uint[] _skillToPosition) public {
+    function Employee(string _firstName, string _lastName, string _email, address _employee) public {
         firstName = _firstName;
         lastName = _lastName;
         email = _email;
-        raiting = _raiting;
         employeeAddress = _employee;
-        positionCodes = _positionCodes;
-        skillCodes = _skillCodes;
-
-        for (uint i = 0; i < _skillToPosition.length; i++) {
-            skillToPosition[skillCodes[i]] = _skillToPosition[i];
-        }
     }
 
     function () public payable {
         owner.transfer(msg.value);
     }
 
-    function getSenderContract() public view returns (address) {
-        for (uint i = 0; i < currentWorks.length; i++) {
-            if (msg.sender == address(currentWorks[i].company))
-                return address(currentWorks[i].work);
+    function getSenderWorkCount() public view returns (uint result) {
+        for (uint i = 0; i < workHistory.length; i++) {
+            if (msg.sender == address(workHistory[i].company))
+                result++;
         }
-        return 0;
+        return result;
     }
 
-    function test(uint index, uint count) public view returns (int) {
-        int sum = 0;
-        for (uint i = 0; i < count; i++) {
-            Contract work = workHistory[index];
-            sum += work.getContractStatus();
+    function getFirstWorkFrom(uint from) public view returns (int, address company) {
+
+        for (uint i = from; i < workHistory.length; i++) {
+            if (msg.sender == address(workHistory[i].company))
+                return (int(i), company);
         }
-        return sum;
+        return (-1, company);
     }
 
-    function addWork(Contract work, Company company) public onlyOwner {
-        workHistory.push(work);
-        currentWorks.push(Work(work, company));
+    function addWork(address work, address company) public onlyOwner {
+        for (uint i = 0; i < workHistory.length; i++) {
+            if (work == workHistory[i].work) {
+                revert();
+            }
+        }
+        workHistory.push(EmployeeWork(work, company, false));
+    }
+
+    function finishWork(address work) public onlyOwner {
+        for (uint i = 0; i < workHistory.length; i++) {
+            if (work == workHistory[i].work) {
+                workHistory[i].isFinish = true;
+                return;
+            }
+        }
+    }
+
+    function changeEmployeeAddress(address _employeeAddress) public onlyOwnerOrEmployee {
+        employeeAddress = _employeeAddress;
     }
 
     function changeRaiting(uint newRaiting) public onlyOwner {
-        raiting = newRaiting;
+        rating = newRaiting;
     }
 
-    function dispute(address work) public onlyOwnerOrEmployee {
-        for (uint i = 0; i < currentWorks.length; i++) {
-            if (work == address(currentWorks[i].work)) {
-                currentWorks[i].work.disputeStatusOn();
+    function dispute(Work work) public onlyOwnerOrEmployee {
+        for (uint i = 0; i < workHistory.length; i++) {
+            if (address(work) == workHistory[i].work) {
+                work.disputeStatusOn();
+                workHistory[i].isFinish = true;
                 return;
             }
         }

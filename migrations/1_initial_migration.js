@@ -1,6 +1,13 @@
 var Migrations = artifacts.require("./Migrations.sol");
+var Store = artifacts.require("./Store.sol");
 
 module.exports = function(deployer) {
+  // var main = web3.eth.accounts[0];
+  // var balance = web3.eth.getBalance(main);
+  // console.log("asd");
+  // deployer.deploy(Main).then(function(data) {
+  //   console.log(data);
+  // });
   deployer.deploy(Migrations);
 };
 

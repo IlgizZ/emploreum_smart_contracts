@@ -3,13 +3,14 @@ module.exports = {
     development: {
       host: "localhost",
       port: 8545,
-      network_id: "*" // Match any network id
+      network_id: "*", // Match any network id
+      gasPrice: 1000000000
     },
     ropsten:  {
       network_id: 3,
       host: "localhost",
       port:  8545,
-      gas:  907749
+      gas:  4700035
     }
   },
    rpc: {
