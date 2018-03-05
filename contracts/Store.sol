@@ -7,6 +7,7 @@ contract Store is Ownable {
     address[] public employees;
     address[] public companies;
     address[] public contracts;
+    string[] public tests;
     address public specializations;
 
     function Store() public payable {}
@@ -23,6 +24,10 @@ contract Store is Ownable {
 
     function addWork(address _contract) public onlyOwner {
         contracts.push(_contract);
+    }
+
+    function addTest(string test) public onlyOwner {
+        tests.push(test);
     }
 
     function setSpecializations(address _specializations) public onlyOwner {

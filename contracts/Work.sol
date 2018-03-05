@@ -4,7 +4,6 @@ import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 contract Work is Ownable {
 
-    uint[] private positionCodes;
     uint[] private skillCodes;
 
     uint private duration;
@@ -12,7 +11,6 @@ contract Work is Ownable {
     address private employee;
     address private company;
     uint private weekPayment;
-    address private owner;
     bool private disputeStatus;
     /*
       frizzing time
@@ -30,21 +28,23 @@ contract Work is Ownable {
 
     event WeekPaymentSent(int code);
 
-    function Work (uint[] _positionCodes, uint[] _skillCodes,
-                            uint _duration, address _empoloyee,
-                            address _company, uint _weekPayment) public payable {
-
+    function Work (
+        uint[] _skillCodes,
+        uint _duration,
+        address _empoloyee,
+        address _company,
+        uint _weekPayment
+    )
+        public
+        payable
+    {
         require(_duration > 0);
 
-        disputeStatus = false;
-        owner = msg.sender;
-
-        weekPayment = _weekPayment;
-        positionCodes = _positionCodes;
         skillCodes = _skillCodes;
         duration = _duration;
         employee = _empoloyee;
         company = _company;
+        weekPayment = _weekPayment;
         frizzing = -100;
     }
 
@@ -93,7 +93,7 @@ contract Work is Ownable {
     }
 
     function solveFrizzing() public payable {
-        require(msg.value > weekPayment);
+        require(msg.value >= weekPayment);
         require(frizzing == -1);
         frizzing = int(((now - startDate) / 1 days + 1 days) % 7);
     }
@@ -111,13 +111,13 @@ contract Work is Ownable {
         if (winner == address(employee))
             employee.transfer(weekPayment);
 
-        company.transfer(weekPayment);
+        company.transfer(this.balance);
         /* selfdestruct(company); */
     }
 
     function start() public payable onlyOwnerOrCompany () {
         require(frizzing == -100);
-        require(msg.value > weekPayment);
+        require(msg.value >= weekPayment);
         /* frizzing = int(((now - startDate) / 1 days + 1 days) % 7); */
         startDate = now;
         frizzing = 0;
@@ -127,11 +127,33 @@ contract Work is Ownable {
         frizzing = -200;
     }
 
-    function getWorkData () public view
-        returns (uint[], uint[], uint, uint, address, address, uint, address, bool, int) {
+    function getWorkData ()
+        public
+        view
+        returns (
+            uint[],
+            uint,
+            uint,
+            address,
+            address,
+            uint,
+            address,
+            bool,
+            int
+        )
+    {
 
-            return (positionCodes, skillCodes,
-                    startDate, duration, employee, company, weekPayment, owner, disputeStatus, frizzing);
+        return (
+            skillCodes,
+            startDate,
+            duration,
+            employee,
+            company,
+            weekPayment,
+            owner,
+            disputeStatus,
+            frizzing
+        );
     }
 
     function getContractStatus() public view returns(int) {

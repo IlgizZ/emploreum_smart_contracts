@@ -1,29 +1,25 @@
 // var Contract = artifacts.require("./Contract.sol");
-var Store = artifacts.require("./Store.sol");
+var Work = artifacts.require("./Work.sol");
 
 module.exports = function(deployer) {
 
-  // var position = "programmer";
-  // var startDate = 1519827609;
-  // var endDate = 1716924800;
-  // var employee = web3.eth.accounts[2];
-  // var main = web3.eth.accounts[0];
-  // var company = web3.eth.accounts[3];
-  // var weekPayment = Math.pow(10, 12);
-  // var initPayment = Math.pow(10, 13);
-  // var contract;
-  // deployer.deploy(Contract, [], [], startDate, endDate, '0x002c7E60484a0B65034C5D70b887Eee4A2C0FFbb', '0x004120f424F83417C68109Cc8522594c22528d3c',
-                      // weekPayment, {value: initPayment});
+  var skillCodes = [];
+  var duration = 2;
+  var employee = web3.eth.accounts[2];
+  var company = web3.eth.accounts[3];
+  var weekPayment = Math.pow(10, 12);
+
+  deployer.deploy(Work, skillCodes, duration, employee, company, weekPayment);
   // deployer.deploy(Main);
 
-  var main = web3.eth.accounts[0];
-  var balance = web3.eth.getBalance(main);
-  deployer.deploy(Store).then(function(data) {
-    console.log("----------------------------------------------");
-    console.log("-------------------GAAAS----------------------");
-    console.log(balance.minus(web3.eth.getBalance(main)).div(1000000000).toString() );
-    console.log("----------------------------------------------");
-  });
+  // var main = web3.eth.accounts[0];
+  // var balance = web3.eth.getBalance(main);
+  // deployer.deploy(Store).then(function(data) {
+  //   console.log("----------------------------------------------");
+  //   console.log("-------------------GAAAS----------------------");
+  //   console.log(balance.minus(web3.eth.getBalance(main)).div(1000000000).toString() );
+  //   console.log("----------------------------------------------");
+  // });
   // deployer.then(function() {
   //   return Main.new();
   // })

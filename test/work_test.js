@@ -1,40 +1,77 @@
-var Work = artifacts.require("./Contract.sol");
+var Work = artifacts.require("./Work.sol");
 
-var position = "programmer";
-var endDate = 1716924800;
 var main = web3.eth.accounts[0];
-var employee = web3.eth.accounts[2];
-var company = web3.eth.accounts[3]
 var anotherAccount = web3.eth.accounts[4];
-var startDate = 1716827609;
+var skillCodes = [];
+var duration = 2;
+var employee = web3.eth.accounts[2];
+var company = web3.eth.accounts[3];
 var weekPayment = Math.pow(10, 12);
-var initPayment = Math.pow(10, 13);
 
 contract('Work', function(accounts) {
   it("should return init data correctly", function() {
     return Work.deployed().then(function(instance) {
-      return instance.getWorkData.call();
+      return instance.getWorkData();
     }).then(function(data) {
+      var startDate = 0;
+      var owner = web3.eth.accounts[0];
+      var disputeStatus = false;
+      var frizzing = -100;
 
-      assert.equal(data[0], position, "position field initialization wasn't correct");
+      assert.deepEqual(data[0], skillCodes, "skillCodes field initialization wasn't correct");
       assert.equal(data[1], startDate, "startDate field initialization wasn't correct");
-      assert.equal(data[2], endDate, "endDate field initialization wasn't correct");
+      assert.equal(data[2], duration, "endDate field initialization wasn't correct");
       assert.equal(data[3], employee, "employee field initialization wasn't correct");
       assert.equal(data[4], company, "company field initialization wasn't correct");
       assert.equal(data[5], weekPayment, "weekPayment field initialization wasn't correct");
-      assert.equal(data[6], accounts[0], "weekPayment field initialization wasn't correct");
-      assert.equal(data[7], false, "weekPayment field initialization wasn't correct");
-      assert.equal(data[8], 0, "weekPayment field initialization wasn't correct");
+      assert.equal(data[6], owner, "owner field initialization wasn't correct");
+      assert.equal(data[7], disputeStatus, "disputeStatus field initialization wasn't correct");
+      assert.equal(data[8], frizzing, "frizzing field initialization wasn't correct");
+    });
+  });
+
+  it("should change status after start", function() {
+    var contract;
+
+    return Work.deployed().then(function(instance) {
+      contract = instance;
+      return contract.start({from: company, value: weekPayment});
+    }).then(function() {
+      return contract.getWorkData();
+    }).then(function(data) {
+      var frizzing = 0;
+      var startDate = 0;
+      assert.notEqual(data[1], startDate, "startDate field wasn't changed");
+      assert.equal(data[8], frizzing, "frizzing field wasn't changed");
+    })
+  });
+
+  it("should throw an exception if start called twice", function() {
+    var contract;
+
+    return Work.deployed().then(function(instance) {
+      contract = instance;
+      return contract.start({from: company, value: weekPayment});
+    }).then(function(data) {
+      assert(false, "twice start call was supposed to throw but didn't.");
+    }).catch(function(error) {
+      if(error.toString().indexOf("VM Exception while") == -1) {
+        assert(false, error.toString());
+      }
     });
   });
 
   it("should throw an exception if employee confirm week payment", function() {
-    return Work.deployed().then(function(instance) {
+    var contract;
 
-      return instance.sendWeekSalary({from: employee});
+    return Work.deployed().then(function(instance) {
+      contract = instance;
+      return contract.sendWeekSalary({from: employee});
     }).then(function(data) {
+
       assert(false, "sendWeekSalary was supposed to throw but didn't.");
     }).catch(function(error) {
+
       if(error.toString().indexOf("VM Exception while") == -1) {
         assert(false, error.toString());
       }
@@ -42,8 +79,11 @@ contract('Work', function(accounts) {
   });
 
   it("should throw an exception if week payment comfirmed not by company", function() {
+    var contract;
+
     return Work.deployed().then(function(instance) {
-      return instance.sendWeekSalary({from: anotherAccount});
+      contract = instance;
+      return contract.sendWeekSalary({from: anotherAccount});
     }).then(function(data) {
       assert(false, "sendWeekSalary was supposed to throw but didn't.");
     }).catch(function(error) {
@@ -53,14 +93,13 @@ contract('Work', function(accounts) {
     });
   });
 
-  it("should send week paymnet to employee", function() {
+  it("should send week paymnet to employee with code 0", function() {
     var employeeInitBalance = web3.eth.getBalance(employee);
     var contract;
 
     return Work.deployed().then(function(instance) {
-
       contract = instance;
-      return contract.sendWeekSalary({from: company});
+      return contract.sendWeekSalary({from: company, value: weekPayment});
     }).then(function(data) {
 
       assert.equal(data.logs[0].args.code, 0, "sendWeekSalary return " + data.logs[0].args.code + " code.");
@@ -75,7 +114,6 @@ contract('Work', function(accounts) {
     var contract;
 
     return Work.deployed().then(function(instance) {
-
       contract = instance;
       return contract.disputeStatusOn({from: employee});
     }).then(function(data) {
@@ -96,13 +134,8 @@ contract('Work', function(accounts) {
     var contract;
 
     return Work.deployed().then(function(instance) {
-
       contract = instance;
-      return contract.disputeStatusOn({from: employee});
-
-    }).then(function(data) {
-
-      return contract.solveDisput(anotherAccount, {from: company});
+      return contract.solveDispute(anotherAccount, {from: company});
 
     }).then(function(data) {
 
@@ -121,18 +154,15 @@ contract('Work', function(accounts) {
     var contract, contractBalance, employeeInitBalance, companyInitBalance;
 
     return Work.deployed().then(function(instance) {
-
       contract = instance;
+
       contractBalance = web3.eth.getBalance(contract.address);
-      return contract.disputeStatusOn({from: employee});
-    }).then(function(data) {
 
       employeeInitBalance = web3.eth.getBalance(employee);
       companyInitBalance = web3.eth.getBalance(company);
 
-      return contract.solveDisput(employee, {from: main});
+      return contract.solveDispute(employee, {from: main});
     }).then(function(data) {
-
       var employeeEndBalance = web3.eth.getBalance(employee);
       var companyEndBalance = web3.eth.getBalance(company);
 
