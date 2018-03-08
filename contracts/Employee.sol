@@ -16,7 +16,7 @@ contract Employee is Ownable {
         uint rating;
     }
 
-    struct TestRaiting {
+    struct TestRating {
         uint testCode;
         uint rating;
     }
@@ -24,7 +24,7 @@ contract Employee is Ownable {
     EmployeeWork[] public workHistory;
     uint public bonusRating;
     Skill[] public skills;
-    TestRaiting[] public passedTests;
+    TestRating[] public passedTests;
 
     string private firstName;
     string private lastName;
@@ -86,35 +86,35 @@ contract Employee is Ownable {
         employeeAddress = _employeeAddress;
     }
 
-    function changeBonusRaiting(uint newRaiting) public onlyOwner {
-        bonusRating = newRaiting;
+    function changeBonusRating(uint addRating) public onlyOwner {
+        bonusRating += addRating;
     }
 
     //assume the skillCode is correct skill code
-    function changeSkillRaiting(uint skillCode, uint newRaiting) public onlyOwner {
+    function changeSkillRating(uint skillCode, uint addRating) public onlyOwner {
         for (uint index = 0; index < skills.length; index++) {
             if (skills[index].skillCode == skillCode) {
-                skills[index].rating = newRaiting;
+                skills[index].rating += addRating;
                 return;
             }
         }
 
-        skills.push(Skill(skillCode, newRaiting));
+        skills.push(Skill(skillCode, addRating));
     }
 
     //assume the skillCode is correct skill code
-    function changeTestRaiting(uint testCode, uint newRaiting) public onlyOwner {
+    function changeTestRating(uint testCode, uint addRating) public onlyOwner {
         for (uint index = 0; index < passedTests.length; index++) {
             if (passedTests[index].testCode == testCode) {
-                passedTests[index].rating = newRaiting;
+                passedTests[index].rating += addRating;
                 return;
             }
         }
 
-        skills.push(Skill(testCode, newRaiting));
+        passedTests.push(TestRating(testCode, addRating));
     }
 
-    function calculateRaiting() public view returns (uint result) {
+    function calculateRating() public view returns (uint result) {
         for (uint i = 0; i < skills.length; i++) {
             result += skills[i].rating;
         }
@@ -124,6 +124,10 @@ contract Employee is Ownable {
         }
 
         result += bonusRating;
+    }
+
+    function getSkills() public view returns (Skill[]) {
+        return skills;
     }
 
     function dispute(Work work) public onlyOwnerOrEmployee {
