@@ -142,6 +142,10 @@ contract Employee is Ownable {
         return skills;
     }
 
+    function getTests() public view returns (TestRating[]) {
+        return passedTests;
+    }
+
     function dispute(Work work) public onlyOwnerOrEmployee {
         for (uint i = 0; i < workHistory.length; i++) {
             if (address(work) == workHistory[i].work) {
