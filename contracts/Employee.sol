@@ -17,15 +17,16 @@ contract Employee is Ownable {
     struct Skill {
         uint skillCode;
         uint rating;
+        uint bonusRating;
     }
 
     struct TestRating {
         uint testCode;
+        uint skillCode;
         uint rating;
     }
 
     EmployeeWork[] public workHistory;
-    uint public bonusRating;
     Skill[] public skills;
     TestRating[] public passedTests;
 
@@ -59,7 +60,6 @@ contract Employee is Ownable {
     }
 
     function getFirstWorkFrom(uint from) public view returns (int, address company) {
-
         for (uint i = from; i < workHistory.length; i++) {
             if (msg.sender == address(workHistory[i].company))
                 return (int(i), company);
@@ -89,36 +89,53 @@ contract Employee is Ownable {
         employeeAddress = _employeeAddress;
     }
 
-    function changeBonusRating(uint addRating) public onlyOwner {
-        bonusRating += addRating;
+    function changeBonusRating(uint skillCode, uint addRating) public onlyOwner {
+        int index = getSkillBySkillCode(skillCode);
+        assert(index > 0);
+        skills[uint(index)].bonusRating += addRating;
     }
 
     //assume the skillCode is correct skill code
-    function changeTestRating(uint testCode, uint addRating) public onlyOwner {
+    function changeTestRating(uint testCode, uint addRating, uint skillCode) public onlyOwner {
         for (uint index = 0; index < passedTests.length; index++) {
-            if (passedTests[index].testCode == testCode) {
+            if (passedTests[index].testCode == testCode && passedTests[index].skillCode == skillCode) {
                 passedTests[index].rating += addRating;
                 return;
             }
         }
 
-        passedTests.push(TestRating(testCode, addRating));
+        passedTests.push(TestRating(testCode, addRating, skillCode));
     }
 
-    function calculateRating() public view returns (uint result) {
-        for (uint i = 0; i < skills.length; i++) {
-            result += skills[i].rating;
+    function getSkillRatingBySkillCode(uint skillCode) public view returns (uint ) {
+        uint result = 9999999999;
+
+        for (uint index = 0; index < skills.length; index++) {
+            if (skills[index].skillCode == skillCode) {
+                result = skills[index].rating;
+                result += skills[index].bonusRating;
+                break;
+            }
         }
 
-        for (i = 0; i < passedTests.length; i++) {
-            result += passedTests[i].rating;
+        assert(result == 9999999999);
+
+        for (index = 0; index < skills.length; index++) {
+            if (passedTests[index].skillCode == skillCode) {
+                result += passedTests[index].rating;
+                break;
+            }
         }
 
-        result += bonusRating;
+        return result;
     }
 
     function getSkills() public view returns (Skill[]) {
         return skills;
+    }
+
+    function getTests() public view returns (TestRating[]) {
+        return passedTests;
     }
 
     function dispute(Work work) public onlyOwnerOrEmployee {
@@ -195,15 +212,23 @@ contract Employee is Ownable {
 
     }
 
-    //assume the skillCode is correct skill code
-    function changeSkillRating(uint skillCode, uint addRating) private {
+    function getSkillBySkillCode(uint skillCode) private view returns (int) {
         for (uint index = 0; index < skills.length; index++) {
             if (skills[index].skillCode == skillCode) {
-                skills[index].rating += addRating;
-                return;
+                return int(index);
             }
         }
+        return -1;
+    }
 
-        skills.push(Skill(skillCode, addRating));
+    //assume the skillCode is correct skill code
+    function changeSkillRating(uint skillCode, uint addRating) private onlyOwner {
+        int index = getSkillBySkillCode(skillCode);
+
+        if (index > 0) {
+            skills[uint(index)].rating += addRating;
+        } else {
+            skills.push(Skill(skillCode, addRating, 0));
+        }
     }
 }

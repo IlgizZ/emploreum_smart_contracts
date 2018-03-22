@@ -1,6 +1,5 @@
 pragma solidity ^0.4.11;
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
-import "./Work.sol";
 
 
 contract Company is Ownable {
@@ -30,7 +29,7 @@ contract Company is Ownable {
         owner.transfer(msg.value);
     }
 
-    function changeRaiting(uint newRaiting) public onlyOwner {
+    function changeRating(uint newRaiting) public onlyOwner {
         rating = newRaiting;
     }
 
@@ -71,5 +70,10 @@ contract Company is Ownable {
         return index;
     }
 
-
+    function getEmployees() public view onlyOwnerOrCompany returns(address[] result) {
+        for (uint i = 0; i < employees.length; i++) {
+            if (employees[i].hired)
+              result.push(employees[i].employeeAddress);
+        }
+    }
 }
