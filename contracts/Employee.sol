@@ -87,24 +87,20 @@ contract Employee is Ownable {
     }
 
     function changeBonusRating(uint skillCode, uint addRating) public onlyOwner {
-        for (uint index = 0; index < skills.length; index++) {
-            if (skills[index].skillCode == skillCode) {
-                skills[index].bonusRating += addRating;
-                return;
-            }
-        }
+        int index = getSkillBySkillCode(skillCode);
+        assert(index > 0);
+        skills[uint(index)].bonusRating += addRating;
     }
 
     //assume the skillCode is correct skill code
     function changeSkillRating(uint skillCode, uint addRating) public onlyOwner {
-        for (uint index = 0; index < skills.length; index++) {
-            if (skills[index].skillCode == skillCode) {
-                skills[index].rating += addRating;
-                return;
-            }
-        }
+        int index = getSkillBySkillCode(skillCode);
 
-        skills.push(Skill(skillCode, addRating, 0));
+        if (index > 0) {
+          skills[uint(index)].rating += addRating;
+        } else {
+          skills.push(Skill(skillCode, addRating, 0));
+        }
     }
 
     //assume the skillCode is correct skill code
@@ -154,5 +150,14 @@ contract Employee is Ownable {
                 return;
             }
         }
+    }
+
+    function getSkillBySkillCode(uint skillCode) private view returns (int) {
+        for (uint index = 0; index < skills.length; index++) {
+            if (skills[index].skillCode == skillCode) {
+                return int(index);
+            }
+        }
+        return -1;
     }
 }
