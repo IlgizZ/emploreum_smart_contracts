@@ -1,9 +1,12 @@
 pragma solidity ^0.4.11;
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Work.sol";
+import "./Company.sol";
 
 
 contract Employee is Ownable {
+
+    using Math for uint256;
 
     struct EmployeeWork {
         address work;
@@ -93,17 +96,6 @@ contract Employee is Ownable {
     }
 
     //assume the skillCode is correct skill code
-    function changeSkillRating(uint skillCode, uint addRating) public onlyOwner {
-        int index = getSkillBySkillCode(skillCode);
-
-        if (index > 0) {
-          skills[uint(index)].rating += addRating;
-        } else {
-          skills.push(Skill(skillCode, addRating, 0));
-        }
-    }
-
-    //assume the skillCode is correct skill code
     function changeTestRating(uint testCode, uint addRating, uint skillCode) public onlyOwner {
         for (uint index = 0; index < passedTests.length; index++) {
             if (passedTests[index].testCode == testCode && passedTests[index].skillCode == skillCode) {
@@ -156,6 +148,70 @@ contract Employee is Ownable {
         }
     }
 
+    function addSkillRatingForWork(address work, uint hoursWorked, uint skillCode) public onlyOwner {
+        bool found;
+        for (uint i = 0; i < workHistory.length; i++) {
+            if (work == workHistory[i].work && !workHistory[i].isFinish) {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+            revert();
+
+        uint skillIndex = skills.length;
+        while (skillIndex < skills.length && skills[skillIndex].skillCode != skillCode) {
+            skillIndex++;
+        }
+        if (skillIndex == skills.length) {
+            skills.push(Skill(skillCode, 0));
+        }
+
+        uint rating = calculateRatingToAdd(company, hoursWorked, skills[skillIndex].rating);
+        changeSkillRating(skillCode, rating);
+    }
+
+    function calculateRatingToAdd(Company company,
+                                    uint hoursWorked,
+                                    uint currentSkillRating
+    ) private pure returns (uint result) {
+        uint e =  2718281;
+        uint n = 1000000;
+        uint currentExp = n;
+        result = company.getRaiting().sqrt() * hoursWorked / 40 / 4;
+
+        //find current expiriance
+        uint root = 8;
+        while (currentSkillRating % 2 == 0 && root > 0) {
+            currentSkillRating /= 2;
+            root--;
+        }
+
+        for (uint i = 0; i < currentSkillRating; i++) {
+            currentExp *= e;
+            currentExp /= n;
+        }
+
+        currentExp *= n;
+
+        while (root > 0) {
+            currentExp *= n;
+            currentExp = currentExp.sqrt();
+            root--;
+        }
+
+        currentExp *= 80372147;
+        currentExp /= n;
+        currentExp -= 80 * n;
+
+        result += currentExp;
+        result = result / 4 + 20;
+        result = result.log();
+        result = (result - 3) * 256;
+
+    }
+
     function getSkillBySkillCode(uint skillCode) private view returns (int) {
         for (uint index = 0; index < skills.length; index++) {
             if (skills[index].skillCode == skillCode) {
@@ -163,5 +219,16 @@ contract Employee is Ownable {
             }
         }
         return -1;
+    }
+
+    //assume the skillCode is correct skill code
+    function changeSkillRating(uint skillCode, uint addRating) private onlyOwner {
+        int index = getSkillBySkillCode(skillCode);
+
+        if (index > 0) {
+            skills[uint(index)].rating += addRating;
+        } else {
+            skills.push(Skill(skillCode, addRating, 0));
+        }
     }
 }

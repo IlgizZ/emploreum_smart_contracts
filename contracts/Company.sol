@@ -53,6 +53,10 @@ contract Company is Ownable {
         employees.length--;
     }
 
+    function getRaiting() public view returns (uint) {
+        return rating;
+    }
+
     function findEmployee(address employee) private view returns (uint index) {
         uint employeeNumber = 0;
 
