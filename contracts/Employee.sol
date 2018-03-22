@@ -104,7 +104,7 @@ contract Employee is Ownable {
             }
         }
 
-        skills.push(Skill(skillCode, addRating));
+        skills.push(Skill(skillCode, addRating, 0));
     }
 
     //assume the skillCode is correct skill code
@@ -132,7 +132,7 @@ contract Employee is Ownable {
 
         assert(result == 9999999999);
 
-        for (uint index = 0; index < skills.length; index++) {
+        for (index = 0; index < skills.length; index++) {
             if (passedTests[index].skillCode == skillCode) {
                 result += passedTests[index].rating;
                 break;
