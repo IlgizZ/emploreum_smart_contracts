@@ -119,8 +119,15 @@ contract('Work', function(accounts) {
     let contract;
 
     return Work.deployed().then(instance => {
+      console.log(instance.address);
+      console.log(123123123);
       contract = instance;
-      return contract.sendWeekSalary(35, {from: company, value: weekPayment});
+      return Employee.deployed();
+    }).then(instance => instance.getWorks(contract.address))
+    .then(data => {
+      console.log(data);
+      console.log(123123123);
+      return contract.sendWeekSalary(35, {from: main, value: weekPayment});
     }).then(data => {
 
       assert.equal(data.logs[0].args.code, 0, "sendWeekSalary return " + data.logs[0].args.code + " code.");

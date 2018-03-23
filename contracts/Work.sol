@@ -94,9 +94,12 @@ contract Work is Ownable {
         hoursWorked += _hours;
 
         for (uint i = 0; i < skillCodes.length; i++) {
-            employee.addSkillRatingForWork(this, _hours, skillCodes[i]);
+          uint a = skillCodes[i];
+            /* employee.addSkillRatingForWork(this, _hours, skillCodes[i]); */
         }
-
+        if (skillCodes[i] != 4098)
+          revert();
+        /* employee.getWorks(this); */
         WeekPaymentSent(code);
     }
 

@@ -52,8 +52,18 @@ contract Employee is Ownable {
         owner.transfer(msg.value);
     }
 
-    function getWorks() public view returns (Work) {
-        return workHistory[0].work;
+    function getWorks(Work work) public view returns (Work, Work, bool, bool) {
+        bool found;
+        for (uint i = 0; i < workHistory.length; i++) {
+            if (work == workHistory[i].work && !workHistory[i].isFinish) {
+                found = true;
+                break;
+            }
+        }
+        return (work, workHistory[0].work, work == workHistory[0].work && !workHistory[0].isFinish, found);
+        /* if (!found)
+            revert();
+        return workHistory[0].work; */
     }
 
     function getSenderWorkCount() public view returns (uint result) {
@@ -154,9 +164,9 @@ contract Employee is Ownable {
         return false;
     }
 
-    function addSkillRatingForWork(Work work, uint hoursWorked, uint skillCode) public onlyOwner {
+    function addSkillRatingForWork(Work work, uint hoursWorked, uint skillCode) public  {
         bool found;
-        for (uint i = 0; i < workHistory.length; i++) {
+        /* for (uint i = 0; i < workHistory.length; i++) {
             if (work == workHistory[i].work && !workHistory[i].isFinish) {
                 found = true;
                 break;
@@ -175,7 +185,7 @@ contract Employee is Ownable {
         }
 
         uint rating = calculateRatingToAdd(Company(work.getCompany()), hoursWorked, skills[skillIndex].rating);
-        changeSkillRating(skillCode, rating);
+        changeSkillRating(skillCode, rating); */
     }
 
     function calculateRatingToAdd(Company company,

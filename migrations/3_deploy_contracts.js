@@ -33,12 +33,7 @@ module.exports = function(deployer) {
       workInstance = instance;
       var promises = [companyInstance.addWork(workInstance.address), employeeInstance.addWork(workInstance.address, companyInstance.address)];
       return Promise.all(promises);
-    }).then(function(instance) {
-      return employeeInstance.getWorks();
-    }).then(function(data) {
-      console.log(data);
-      console.log('asdasdasdasd');
-    });
+    })
   });
 
 
