@@ -6,6 +6,7 @@ library Math {
     function log(uint x) internal pure returns (uint result) {
         uint N = 1000000;
 
+        x *= N;
         while (x >= 1500000) {
             result = result + 405465;
             x = x * 2 / 3;
@@ -27,10 +28,10 @@ library Math {
 
     function sqrt(uint x) internal pure returns (uint result) {
         uint N = 1000000;
+        uint tmp = x;
+        tmp *= N * N;
 
-        x *= N;
-
-        assert(x == 0 || tmp / N == x);
+        assert(x == 0 || tmp / (N * N) == x);
         x = tmp;
 
         result = (x + 1) / 2;

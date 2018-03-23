@@ -1,17 +1,18 @@
 pragma solidity ^0.4.11;
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "./Work.sol";
 
 
 contract Company is Ownable {
 
-    struct Worker {
+    struct Review {
         address employeeAddress;
-        bool hired;
+        int rating;
     }
 
     string public name;
-    uint public rating;
-    Worker[] private employees;
+    Work[] private works;
+    Review[] private reviews;
     address private companyAddress;
 
     modifier onlyOwnerOrCompany() {
@@ -19,9 +20,8 @@ contract Company is Ownable {
         _;
     }
 
-    function Company(string _name, uint _rating, address _companyAddress) public {
+    function Company(string _name, address _companyAddress) public {
         name = _name;
-        rating = _rating;
         companyAddress = _companyAddress;
     }
 
@@ -29,51 +29,42 @@ contract Company is Ownable {
         owner.transfer(msg.value);
     }
 
-    function changeRating(uint newRaiting) public onlyOwner {
-        rating = newRaiting;
+    function addReview(address employee, int rating) public onlyOwnerOrCompany {
+        reviews.push(Review(employee, rating));
     }
 
-    function addEmployee(address _employee) public onlyOwnerOrCompany {
-        uint index = findEmployee(_employee);
+    function addWork(Work work) public onlyOwnerOrCompany {
+        works.push(work);
+    }
 
-        if (index < 0) {
-            Worker memory employee = Worker(_employee, true);
-            employees.push(employee);
-        } else {
-            employees[index].hired = true;
-            employees.length++;
+    function getWorks() public view onlyOwnerOrCompany returns(Work[]) {
+        return works;
+    }
+
+    function getReviewRating() public view returns(int result) {
+        for (uint i = 0; i < reviews.length; i++) {
+            result += reviews[i].rating;
         }
     }
 
-    function removeEmployee(address _employee) public onlyOwnerOrCompany {
-        uint index = findEmployee(_employee);
-        require(index >= 0);
+    function getRating() public view returns(int result) {
+        uint totalHours = 0;
+        uint totalWeekPayment = 0;
+        for (uint i = 0; i < works.length; i++) {
+            Work work = works[i];
+            if (work.getContractStatus() < 0) {
+                continue;
+            }
 
-        employees[index].hired = false;
-        employees.length--;
-    }
-
-    function getRaiting() public view returns (uint) {
-        return rating;
-    }
-
-    function findEmployee(address employee) private view returns (uint index) {
-        uint employeeNumber = 0;
-
-        while (employeeNumber < employees.length) {
-            if (employees[index].employeeAddress == employee)
-                return index;
-            if (employees[index].hired)
-                employeeNumber++;
-            index++;
+            result += int(work.getCompanyWorkRating());
+            totalHours += work.getWorkedHours();
+            totalWeekPayment += work.getWeekPayment();
         }
-        return index;
-    }
 
-    function getEmployees() public view onlyOwnerOrCompany returns(address[] result) {
-        for (uint i = 0; i < employees.length; i++) {
-            if (employees[i].hired)
-              result.push(employees[i].employeeAddress);
-        }
+        result *= int(works.length);
+        result /= int(totalHours);
+
+        result += getReviewRating() * 1000000;
+        result += int(totalWeekPayment) * 25000; // 1000000 / 40
     }
 }

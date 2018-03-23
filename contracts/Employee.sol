@@ -2,6 +2,7 @@ pragma solidity ^0.4.11;
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Work.sol";
 import "./Company.sol";
+import "./Math.sol";
 
 
 contract Employee is Ownable {
@@ -148,7 +149,7 @@ contract Employee is Ownable {
         }
     }
 
-    function addSkillRatingForWork(address work, uint hoursWorked, uint skillCode) public onlyOwner {
+    function addSkillRatingForWork(Work work, uint hoursWorked, uint skillCode) public onlyOwner {
         bool found;
         for (uint i = 0; i < workHistory.length; i++) {
             if (work == workHistory[i].work && !workHistory[i].isFinish) {
@@ -165,21 +166,25 @@ contract Employee is Ownable {
             skillIndex++;
         }
         if (skillIndex == skills.length) {
-            skills.push(Skill(skillCode, 0));
+            skills.push(Skill(skillCode, 0, 0));
         }
 
-        uint rating = calculateRatingToAdd(company, hoursWorked, skills[skillIndex].rating);
+        uint rating = calculateRatingToAdd(Company(work.getCompany()), hoursWorked, skills[skillIndex].rating);
         changeSkillRating(skillCode, rating);
     }
 
     function calculateRatingToAdd(Company company,
                                     uint hoursWorked,
                                     uint currentSkillRating
-    ) private pure returns (uint result) {
+    ) private view returns (uint result) {
         uint e =  2718281;
         uint n = 1000000;
         uint currentExp = n;
-        result = company.getRaiting().sqrt() * hoursWorked / 40 / 4;
+        int companyRating = company.getRating();
+
+        if (companyRating < 0)
+            revert();
+        result = uint(companyRating).sqrt() * hoursWorked / 40 / 4;
 
         //find current expiriance
         uint root = 8;

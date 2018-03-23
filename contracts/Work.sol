@@ -1,5 +1,6 @@
 pragma solidity ^0.4.11;
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "./Employee.sol";
 
 
 contract Work is Ownable {
@@ -8,7 +9,8 @@ contract Work is Ownable {
 
     uint private duration;
     uint private startDate;
-    address private employee;
+    uint private hoursWorked;
+    Employee private employee;
     address private company;
     uint private weekPayment;
     bool private disputeStatus;
@@ -31,7 +33,7 @@ contract Work is Ownable {
     function Work (
         uint[] _skillCodes,
         uint _duration,
-        address _empoloyee,
+        Employee _empoloyee,
         address _company,
         uint _weekPayment
     )
@@ -54,7 +56,7 @@ contract Work is Ownable {
     }
 
     modifier onlyEmployeeOrCompany() {
-        require(msg.sender == owner || msg.sender == employee);
+        require(msg.sender == owner || msg.sender == address(employee));
         _;
     }
 
@@ -72,7 +74,7 @@ contract Work is Ownable {
             1   no enough money for next week payment
             0   ok, all right
     */
-    function sendWeekSalary() public onlyOwnerOrCompany payable {
+    function sendWeekSalary(uint _hours) public onlyOwnerOrCompany payable {
         require(frizzing >= 0);
         require((now - startDate + uint(frizzing)) % 7 < 1 days);
         require(!disputeStatus);
@@ -89,6 +91,7 @@ contract Work is Ownable {
                 code = 1;
         }
 
+        hoursWorked += _hours;
         WeekPaymentSent(code);
     }
 
@@ -103,7 +106,7 @@ contract Work is Ownable {
     }
 
     function solveDispute(address winner) public onlyOwner {
-        require(winner == employee || winner == company);
+        require(winner == address(employee) || winner == company);
         require(disputeStatus);
 
         frizzing = -500;
@@ -134,7 +137,7 @@ contract Work is Ownable {
             uint[],
             uint,
             uint,
-            address,
+            Employee,
             address,
             uint,
             address,
@@ -154,6 +157,30 @@ contract Work is Ownable {
             disputeStatus,
             frizzing
         );
+    }
+
+    function getWorkedHours() public view returns(uint) {
+        return hoursWorked;
+    }
+
+    function getWeekPayment() public view returns(uint) {
+        return weekPayment;
+    }
+
+    function getEmployee() public view returns(address) {
+        return employee;
+    }
+
+    function getCompany() public view returns(address) {
+        return company;
+    }
+
+    function getCompanyWorkRating() public view returns(uint result) {
+        for (uint i = 0; i < skillCodes.length; i++) {
+            result += employee.getSkillRatingBySkillCode(skillCodes[i]);
+        }
+        result /= skillCodes.length;
+        result *= hoursWorked;
     }
 
     function getContractStatus() public view returns(int) {
