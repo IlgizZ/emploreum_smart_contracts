@@ -7,16 +7,13 @@ contract('Employee', function(accounts) {
   var company, work;
   it("should correct calculate logarithm", function() {
 
-    return Work.deployed().then(function(instance) {
+    return Work.deployed().then(instance => {
       work = instance;
-      return Company.deployed().then(function(instance) {
+      return Company.deployed().then(instance => {
         company = instance
-        return Employee.deployed().then(function(instance) {
-          return instance.addWork(work.address, company.address);
-        }).then(function(data) {
-          return instance.getWorks();
-        }).then(function(data) {
-          console.log(data);
+        return Employee.deployed().then(instance => instance.addWork(work.address, company.address))
+        .then(data => {
+        
         });
       });
     });

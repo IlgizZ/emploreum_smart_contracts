@@ -17,14 +17,10 @@ var checker = function (instanceF, mathF, errorMsg) {
 
 contract('MathTester', function(accounts) {
   it("should correct calculate logarithm", function() {
-    return MathTester.deployed().then(function(instance) {
-      return checker(instance.log, Math.log, 'logarithm function doesn\'t work correct for:')
-    })
+    return MathTester.deployed().then(instance => checker(instance.log, Math.log, 'logarithm function doesn\'t work correct for:') )
   });
 
   it("should correct calculate sqrt", function() {
-    return MathTester.deployed().then(function(instance) {
-        return checker(instance.sqrt, Math.sqrt, 'sqrt function doesn\'t work correct for:')
-    })
+    return MathTester.deployed().then(instance => checker(instance.sqrt, Math.sqrt, 'sqrt function doesn\'t work correct for:'))
   });
 });
