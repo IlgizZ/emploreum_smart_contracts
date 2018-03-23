@@ -24,6 +24,8 @@ library Math {
             i = i + 1;
             y = y * x / N;
         }
+
+        result /= 1000;
     }
 
     function sqrt(uint x) internal pure returns (uint result) {
@@ -42,6 +44,6 @@ library Math {
             result = (x / result + result) / 2;
         }
 
-        result /= N;
+        result /= 1000;
     }
 }

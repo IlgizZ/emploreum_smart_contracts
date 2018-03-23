@@ -10,8 +10,8 @@ contract Employee is Ownable {
     using Math for uint256;
 
     struct EmployeeWork {
-        address work;
-        address company;
+        Work work;
+        Company company;
         bool isFinish;
     }
 
@@ -52,6 +52,10 @@ contract Employee is Ownable {
         owner.transfer(msg.value);
     }
 
+    function getWorks() public view returns (Work) {
+        return workHistory[0].work;
+    }
+
     function getSenderWorkCount() public view returns (uint result) {
         for (uint i = 0; i < workHistory.length; i++) {
             if (msg.sender == address(workHistory[i].company))
@@ -60,15 +64,15 @@ contract Employee is Ownable {
         return result;
     }
 
-    function getFirstWorkFrom(uint from) public view returns (int, address company) {
+    function getFirstWorkFrom(uint from) public view returns (int, Company company) {
         for (uint i = from; i < workHistory.length; i++) {
             if (msg.sender == address(workHistory[i].company))
-                return (int(i), company);
+                return (int(i), workHistory[i].company);
         }
         return (-1, company);
     }
 
-    function addWork(address work, address company) public onlyOwner {
+    function addWork(Work work, Company company) public onlyOwner {
         for (uint i = 0; i < workHistory.length; i++) {
             if (work == workHistory[i].work) {
                 revert();
@@ -77,7 +81,7 @@ contract Employee is Ownable {
         workHistory.push(EmployeeWork(work, company, false));
     }
 
-    function finishWork(address work) public onlyOwner {
+    function finishWork(Work work) public onlyOwner {
         for (uint i = 0; i < workHistory.length; i++) {
             if (work == workHistory[i].work) {
                 workHistory[i].isFinish = true;
@@ -119,7 +123,7 @@ contract Employee is Ownable {
             }
         }
 
-        assert(result == 9999999999);
+        assert(result != 9999999999);
 
         for (index = 0; index < skills.length; index++) {
             if (passedTests[index].skillCode == skillCode) {
@@ -139,14 +143,15 @@ contract Employee is Ownable {
         return passedTests;
     }
 
-    function dispute(Work work) public onlyOwnerOrEmployee {
+    function dispute(Work work) public onlyOwnerOrEmployee returns(bool) {
         for (uint i = 0; i < workHistory.length; i++) {
-            if (address(work) == workHistory[i].work) {
+            if (work == workHistory[i].work) {
                 work.disputeStatusOn();
                 workHistory[i].isFinish = true;
-                return;
+                return true;
             }
         }
+        return false;
     }
 
     function addSkillRatingForWork(Work work, uint hoursWorked, uint skillCode) public onlyOwner {
