@@ -21,10 +21,20 @@ contract Company is Ownable {
         _;
     }
 
+    modifier onlyWork() {
+        Work work = Work(msg.sender);
+        //check in store
+        bool isInStore = true;
+        require(work.getCompanyContractAddress() == address(this) && isInStore);
+        _;
+    }
+
+    event CompanyTest(int data, uint index);
+
     function Company(string _name, address _companyAddress) public {
         name = _name;
         companyAddress = _companyAddress;
-        rating = 1000;
+        rating = 1000000;
     }
 
     function () public payable {
@@ -35,7 +45,7 @@ contract Company is Ownable {
         reviews.push(Review(employee, _rating));
     }
 
-    function addWork(Work work) public onlyOwnerOrCompany {
+    function addWork(Work work) public onlyWork {
         works.push(work);
     }
 
@@ -63,27 +73,37 @@ contract Company is Ownable {
         return false;
     }
 
-
-    function calculateRating() public onlyOwnerOrCompany {
+    function changeRating() public onlyWork {
+        int n = 1000000;
         int result = 0;
-        uint totalHours = 0;
-        uint totalWeekPayment = 0;
+        int totalHours = 0;
+        /* int totalWeekPayment = 0; */
+        int workCount = 0;
+
         for (uint i = 0; i < works.length; i++) {
             Work work = works[i];
             if (work.getContractStatus() < 0) {
                 continue;
             }
-
-            result += int(work.getCompanyWorkRating());
-            totalHours += work.getWorkedHours();
-            totalWeekPayment += work.getWeekPayment();
+            result += work.getCompanyWorkRating(); //// R(empl) I
+            totalHours += int(work.getWorkedHours()); // R(empl) II
+            /* totalWeekPayment += int(work.getWeekPayment()); // R(salary) I */
+            workCount++; // R(salary) II
         }
-
-        result *= int(works.length);
+        CompanyTest(result, 0);
+        CompanyTest(totalHours, 1);
+        /* CompanyTest(totalWeekPayment, 2); */
+        CompanyTest(workCount, 3);
+        // R(empl) II
         result /= int(totalHours);
-
-        result += getReviewRating() * 1000;
-        result += int(totalWeekPayment) * 25; // 1000 / 40
-        rating = result;
+        CompanyTest(result, 4);
+        /* result += totalWeekPayment * n / workCount; //R(salary) */
+        CompanyTest(result, 5);
+        result += getReviewRating() * n; // R(reviews)
+        CompanyTest(result, 6);
+        rating = result + n;
+        CompanyTest(rating, 7);
+        CompanyTest(rating, 7);
+        CompanyTest(0, 0);
     }
 }

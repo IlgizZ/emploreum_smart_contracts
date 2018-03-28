@@ -36,8 +36,18 @@ contract Employee is Ownable {
     string private email;
     address private employeeAddress;
 
+    event EmployeeTest(uint data, uint index);
+
     modifier onlyOwnerOrEmployee() {
         require(msg.sender == owner || msg.sender == employeeAddress);
+        _;
+    }
+
+    modifier onlyWork() {
+        Work work = Work(msg.sender);
+        //check in store
+        bool isInStore = true;
+        require(work.getEmployee() == address(this) && isInStore);
         _;
     }
 
@@ -49,46 +59,24 @@ contract Employee is Ownable {
     }
 
     function () public payable {
-        owner.transfer(msg.value);
+
     }
 
-    function getWorks(Work work) public view returns (Work, Work, bool, bool) {
-        bool found;
-        for (uint i = 0; i < workHistory.length; i++) {
-            if (work == workHistory[i].work && !workHistory[i].isFinish) {
-                found = true;
-                break;
-            }
-        }
-        return (work, workHistory[0].work, work == workHistory[0].work && !workHistory[0].isFinish, found);
-        /* if (!found)
-            revert();
-        return workHistory[0].work; */
-    }
-
-    function getSenderWorkCount() public view returns (uint result) {
-        for (uint i = 0; i < workHistory.length; i++) {
-            if (msg.sender == address(workHistory[i].company))
-                result++;
-        }
-        return result;
-    }
-
-    function getFirstWorkFrom(uint from) public view returns (int, Company company) {
-        for (uint i = from; i < workHistory.length; i++) {
-            if (msg.sender == address(workHistory[i].company))
-                return (int(i), workHistory[i].company);
-        }
-        return (-1, company);
-    }
-
-    function addWork(Work work, Company company) public onlyOwner {
+    function addWork(Work work, address company) public onlyWork {
         for (uint i = 0; i < workHistory.length; i++) {
             if (work == workHistory[i].work) {
                 revert();
             }
         }
-        workHistory.push(EmployeeWork(work, company, false));
+        workHistory.push(EmployeeWork(work, Company(company), false));
+    }
+
+    function getWorks() public view returns (Work[]) {
+        Work[] memory  works = new Work[](workHistory.length);
+        for (uint i = 0; i < workHistory.length; i++) {
+            works[i] = workHistory[i].work;
+        }
+        return works;
     }
 
     function finishWork(Work work) public onlyOwner {
@@ -105,9 +93,13 @@ contract Employee is Ownable {
     }
 
     function changeBonusRating(uint skillCode, uint addRating) public onlyOwner {
-        int index = getSkillBySkillCode(skillCode);
-        assert(index > 0);
-        skills[uint(index)].bonusRating += addRating;
+        for (uint index = 0; index < skills.length; index++) {
+            if (skills[index].skillCode == skillCode) {
+                break;
+            }
+        }
+        assert(index == skills.length);
+        skills[index].bonusRating += addRating;
     }
 
     //assume the skillCode is correct skill code
@@ -122,35 +114,28 @@ contract Employee is Ownable {
         passedTests.push(TestRating(testCode, addRating, skillCode));
     }
 
-    function getSkillRatingBySkillCode(uint skillCode) public view returns (uint ) {
-        uint result = 9999999999;
+    function getSkillRatingBySkillCode(uint skillCode) public view returns (uint) {
+        uint result;
 
-        for (uint index = 0; index < skills.length; index++) {
-            if (skills[index].skillCode == skillCode) {
-                result = skills[index].rating;
-                result += skills[index].bonusRating;
+        for (uint skillIndex = 0; skillIndex < skills.length; skillIndex++) {
+            if (skills[skillIndex].skillCode == skillCode) {
+                result = skills[skillIndex].rating;
+                result += skills[skillIndex].bonusRating;
                 break;
             }
         }
 
-        assert(result != 9999999999);
-
-        for (index = 0; index < skills.length; index++) {
-            if (passedTests[index].skillCode == skillCode) {
-                result += passedTests[index].rating;
+        for (uint testIndex = 0; testIndex < passedTests.length; testIndex++) {
+            if (passedTests[testIndex].skillCode == skillCode) {
+                result += passedTests[testIndex].rating;
                 break;
             }
         }
+
+        if (skillIndex == skills.length && testIndex == passedTests.length)
+            revert();
 
         return result;
-    }
-
-    function getSkills() public view returns (Skill[]) {
-        return skills;
-    }
-
-    function getTests() public view returns (TestRating[]) {
-        return passedTests;
     }
 
     function dispute(Work work) public onlyOwnerOrEmployee returns(bool) {
@@ -164,9 +149,9 @@ contract Employee is Ownable {
         return false;
     }
 
-    function addSkillRatingForWork(Work work, uint hoursWorked, uint skillCode) public  {
+    function addSkillRatingForWork(Work work, uint hoursWorked, uint skillCode) public onlyWork {
         bool found;
-        /* for (uint i = 0; i < workHistory.length; i++) {
+        for (uint i = 0; i < workHistory.length; i++) {
             if (work == workHistory[i].work && !workHistory[i].isFinish) {
                 found = true;
                 break;
@@ -176,79 +161,80 @@ contract Employee is Ownable {
         if (!found)
             revert();
 
-        uint skillIndex = skills.length;
+
+        uint skillIndex;
         while (skillIndex < skills.length && skills[skillIndex].skillCode != skillCode) {
             skillIndex++;
         }
-        if (skillIndex == skills.length) {
-            skills.push(Skill(skillCode, 0, 0));
-        }
 
-        uint rating = calculateRatingToAdd(Company(work.getCompany()), hoursWorked, skills[skillIndex].rating);
-        changeSkillRating(skillCode, rating); */
+        bool isNewSkill = skillIndex == skills.length;
+
+        uint currentSkillRating = isNewSkill ? 0 : skills[skillIndex].rating;
+        uint newRating = calculateRatingToAdd(
+            Company(work.getCompanyContractAddress()), hoursWorked, currentSkillRating
+        );
+
+        if (isNewSkill) {
+            skills.push(Skill(skillCode, newRating, 0));
+        } else {
+            skills[skillIndex].rating = newRating;
+        }
+    }
+
+    function getSkillHistory(uint skillCode) public view returns(Work[] result) {
+        for (uint i = 0; i < workHistory.length; i++) {
+            if (workHistory[i].work.hasSkill(skillCode)) {
+                result[i] = (workHistory[i].work);
+            }
+        }
     }
 
     function calculateRatingToAdd(Company company,
                                     uint hoursWorked,
                                     uint currentSkillRating
-    ) private view returns (uint result) {
-        uint e =  2718281;
+    ) private  returns (uint result) {
         uint n = 1000000;
-        uint currentExp = n;
         int companyRating = company.getRating();
 
         if (companyRating < 0)
             revert();
-        result = uint(companyRating).sqrt() * hoursWorked / 40 / 4;
+
+        //new income expiriance
+        result = uint(companyRating).sqrt() * hoursWorked / 80; // 40 * 2
+        EmployeeTest(result, 0);
 
         //find current expiriance
-        uint root = 8;
-        while (currentSkillRating % 2 == 0 && root > 0) {
-            currentSkillRating /= 2;
-            root--;
-        }
+        uint currentExp = currentSkillRating / 256;
+        currentExp = currentExp.exp();
+        EmployeeTest(currentExp, 1);
 
-        for (uint i = 0; i < currentSkillRating; i++) {
-            currentExp *= e;
-            currentExp /= n;
-        }
-
-        currentExp *= n;
-
-        while (root > 0) {
-            currentExp *= n;
-            currentExp = currentExp.sqrt();
-            root--;
-        }
-
-        currentExp *= 80372147;
+        currentExp *= 80342147;
         currentExp /= n;
         currentExp -= 80 * n;
+        EmployeeTest(currentExp, 2);
+
 
         result += currentExp;
-        result = result / 4 + 20;
+        EmployeeTest(result, 3);
+        result = result / 4 + 20 * n;
+        EmployeeTest(result, 4);
         result = result.log();
-        result = (result - 3) * 256;
-
+        EmployeeTest(result, 5);
+        result = (result - 3 * n) * 256;
+        EmployeeTest(result, 6);
+        EmployeeTest(0, 7);
+        EmployeeTest(0, 8);
     }
 
-    function getSkillBySkillCode(uint skillCode) private view returns (int) {
-        for (uint index = 0; index < skills.length; index++) {
-            if (skills[index].skillCode == skillCode) {
-                return int(index);
-            }
-        }
-        return -1;
+    function getOwner() public view returns (address) {
+        return owner;
     }
 
-    //assume the skillCode is correct skill code
-    function changeSkillRating(uint skillCode, uint addRating) private onlyOwner {
-        int index = getSkillBySkillCode(skillCode);
+    function test(uint index) public view returns (uint, uint, uint) {
+        return (skills[index].rating, skills[index].skillCode, skills[index].bonusRating);
+    }
 
-        if (index > 0) {
-            skills[uint(index)].rating += addRating;
-        } else {
-            skills.push(Skill(skillCode, addRating, 0));
-        }
+    function test2() public view returns (address) {
+        return msg.sender;
     }
 }

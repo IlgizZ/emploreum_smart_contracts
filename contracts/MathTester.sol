@@ -14,4 +14,8 @@ contract MathTester {
         return x.log();
     }
 
+    function exp(uint x) public pure returns (uint) {
+        return x.exp();
+    }
+
 }

@@ -1,7 +1,7 @@
 pragma solidity ^0.4.11;
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Employee.sol";
-
+import "./Company.sol";
 
 contract Work is Ownable {
 
@@ -11,6 +11,7 @@ contract Work is Ownable {
     uint private startDate;
     uint private hoursWorked;
     Employee private employee;
+    Company private companyContractAddress;
     address private company;
     uint private weekPayment;
     bool private disputeStatus;
@@ -35,6 +36,7 @@ contract Work is Ownable {
         uint _duration,
         Employee _empoloyee,
         address _company,
+        Company _companyContractAddress,
         uint _weekPayment
     )
         public
@@ -46,6 +48,7 @@ contract Work is Ownable {
         duration = _duration;
         employee = _empoloyee;
         company = _company;
+        companyContractAddress = _companyContractAddress;
         weekPayment = _weekPayment;
         frizzing = -100;
     }
@@ -56,7 +59,7 @@ contract Work is Ownable {
     }
 
     modifier onlyEmployeeOrCompany() {
-        require(msg.sender == owner || msg.sender == address(employee));
+        require(msg.sender == company || msg.sender == address(employee));
         _;
     }
 
@@ -94,12 +97,10 @@ contract Work is Ownable {
         hoursWorked += _hours;
 
         for (uint i = 0; i < skillCodes.length; i++) {
-          uint a = skillCodes[i];
-            /* employee.addSkillRatingForWork(this, _hours, skillCodes[i]); */
+            employee.addSkillRatingForWork(this, _hours, skillCodes[i]);
         }
-        if (skillCodes[i] != 4098)
-          revert();
-        /* employee.getWorks(this); */
+        companyContractAddress.changeRating();
+
         WeekPaymentSent(code);
     }
 
@@ -120,22 +121,28 @@ contract Work is Ownable {
         frizzing = -500;
 
         if (winner == address(employee))
-            employee.transfer(weekPayment);
+            winner.transfer(weekPayment);
 
         company.transfer(this.balance);
         /* selfdestruct(company); */
     }
 
-    function start() public payable onlyOwnerOrCompany () {
+    function start() public payable onlyOwner() {
         require(frizzing == -100);
         require(msg.value >= weekPayment);
         /* frizzing = int(((now - startDate) / 1 days + 1 days) % 7); */
         startDate = now;
         frizzing = 0;
+        employee.addWork(this, companyContractAddress);
+        companyContractAddress.addWork(this);
     }
 
     function finish() public onlyOwner {
         frizzing = -200;
+    }
+
+    function test2() public onlyOwner view returns(address) {
+        return employee.test2();
     }
 
     function getWorkData ()
@@ -179,16 +186,29 @@ contract Work is Ownable {
         return employee;
     }
 
-    function getCompany() public view returns(address) {
-        return company;
+    function getCompanyContractAddress() public view returns(address) {
+        return companyContractAddress;
     }
 
-    function getCompanyWorkRating() public view returns(uint result) {
+    function getDisputeStatus() public view returns(bool) {
+        return disputeStatus;
+    }
+
+    function hasSkill(uint skillCode) public view returns(bool) {
         for (uint i = 0; i < skillCodes.length; i++) {
-            result += employee.getSkillRatingBySkillCode(skillCodes[i]);
+            if (skillCodes[i] == skillCode)
+                return true;
         }
-        result /= skillCodes.length;
-        result *= hoursWorked;
+        return false;
+    }
+
+    // R(empl) I
+    function getCompanyWorkRating() public view returns(int result) {
+        for (uint i = 0; i < skillCodes.length; i++) {
+            result += int(employee.getSkillRatingBySkillCode(skillCodes[i]));
+        }
+        result *= int(hoursWorked);
+        result /= int(skillCodes.length);
     }
 
     function getContractStatus() public view returns(int) {

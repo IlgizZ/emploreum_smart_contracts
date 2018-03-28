@@ -1,12 +1,15 @@
 pragma solidity ^0.4.11;
 
+/**
+    *
+    *FOR input apply uint x * 10^6
+    *
+*/
 
 library Math {
-
     function log(uint x) internal pure returns (uint result) {
         uint N = 1000000;
 
-        x *= N;
         while (x >= 1500000) {
             result = result + 405465;
             x = x * 2 / 3;
@@ -24,16 +27,14 @@ library Math {
             i = i + 1;
             y = y * x / N;
         }
-
-        result /= 1000;
     }
 
     function sqrt(uint x) internal pure returns (uint result) {
         uint N = 1000000;
         uint tmp = x;
-        tmp *= N * N;
+        tmp *= N;
 
-        assert(x == 0 || tmp / (N * N) == x);
+        assert(x == 0 || tmp / (N) == x);
         x = tmp;
 
         result = (x + 1) / 2;
@@ -43,7 +44,23 @@ library Math {
             tmp = result;
             result = (x / result + result) / 2;
         }
+    }
 
-        result /= 1000;
+    function exp(uint x) internal pure returns (uint result) {
+        uint fact = 1;
+        uint accurancy = 1000000;
+        uint iteration = 0;
+
+        while (accurancy > 1) {
+            result += accurancy;
+            accurancy = x;
+            for (uint i = 0; i < iteration; i++) {
+                accurancy *= x;
+                accurancy /= 1000000;
+            }
+            iteration++;
+            fact *= iteration;
+            accurancy /= fact;
+        }
     }
 }
