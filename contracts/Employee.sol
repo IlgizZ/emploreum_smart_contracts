@@ -36,8 +36,6 @@ contract Employee is Ownable {
     string private email;
     address private employeeAddress;
 
-    event EmployeeTest(uint data, uint index);
-
     modifier onlyOwnerOrEmployee() {
         require(msg.sender == owner || msg.sender == employeeAddress);
         _;
@@ -62,13 +60,17 @@ contract Employee is Ownable {
 
     }
 
-    function addWork(Work work, address company) public onlyWork {
+    function changeEmployeeAddress(address _employeeAddress) public onlyOwnerOrEmployee {
+        employeeAddress = _employeeAddress;
+    }
+
+    function addWork(Work work, Company company) public onlyWork {
         for (uint i = 0; i < workHistory.length; i++) {
             if (work == workHistory[i].work) {
                 revert();
             }
         }
-        workHistory.push(EmployeeWork(work, Company(company), false));
+        workHistory.push(EmployeeWork(work, company, false));
     }
 
     function getWorks() public view returns (Work[]) {
@@ -88,8 +90,15 @@ contract Employee is Ownable {
         }
     }
 
-    function changeEmployeeAddress(address _employeeAddress) public onlyOwnerOrEmployee {
-        employeeAddress = _employeeAddress;
+    function dispute(Work work) public onlyOwnerOrEmployee returns(bool) {
+        for (uint i = 0; i < workHistory.length; i++) {
+            if (work == workHistory[i].work) {
+                work.disputeStatusOn();
+                workHistory[i].isFinish = true;
+                return true;
+            }
+        }
+        return false;
     }
 
     function changeBonusRating(uint skillCode, uint addRating) public onlyOwner {
@@ -114,6 +123,23 @@ contract Employee is Ownable {
         passedTests.push(TestRating(testCode, addRating, skillCode));
     }
 
+    function getSkills() public view returns (uint[] result) {
+        result = new uint[](skills.length);
+        for (uint i = 0; i < skills.length; i++) {
+            result[i] = skills[i].skillCode;
+        }
+    }
+
+    function getSkillHistory(uint skillCode) public view returns(address[]) {
+        address[] memory result = new address[](workHistory.length);
+        for (uint i = 0; i < workHistory.length; i++) {
+            if (workHistory[i].work.hasSkill(skillCode)) {
+                result[i] = (workHistory[i].work);
+            }
+        }
+        return result;
+    }
+
     function getSkillRatingBySkillCode(uint skillCode) public view returns (uint) {
         uint result;
 
@@ -136,17 +162,6 @@ contract Employee is Ownable {
             revert();
 
         return result;
-    }
-
-    function dispute(Work work) public onlyOwnerOrEmployee returns(bool) {
-        for (uint i = 0; i < workHistory.length; i++) {
-            if (work == workHistory[i].work) {
-                work.disputeStatusOn();
-                workHistory[i].isFinish = true;
-                return true;
-            }
-        }
-        return false;
     }
 
     function addSkillRatingForWork(Work work, uint hoursWorked, uint skillCode) public onlyWork {
@@ -181,18 +196,10 @@ contract Employee is Ownable {
         }
     }
 
-    function getSkillHistory(uint skillCode) public view returns(Work[] result) {
-        for (uint i = 0; i < workHistory.length; i++) {
-            if (workHistory[i].work.hasSkill(skillCode)) {
-                result[i] = (workHistory[i].work);
-            }
-        }
-    }
-
     function calculateRatingToAdd(Company company,
                                     uint hoursWorked,
                                     uint currentSkillRating
-    ) private  returns (uint result) {
+    ) private view returns (uint result) {
         uint n = 1000000;
         int companyRating = company.getRating();
 
@@ -201,40 +208,18 @@ contract Employee is Ownable {
 
         //new income expiriance
         result = uint(companyRating).sqrt() * hoursWorked / 80; // 40 * 2
-        EmployeeTest(result, 0);
 
         //find current expiriance
         uint currentExp = currentSkillRating / 256;
         currentExp = currentExp.exp();
-        EmployeeTest(currentExp, 1);
 
         currentExp *= 80342147;
         currentExp /= n;
         currentExp -= 80 * n;
-        EmployeeTest(currentExp, 2);
-
 
         result += currentExp;
-        EmployeeTest(result, 3);
         result = result / 4 + 20 * n;
-        EmployeeTest(result, 4);
         result = result.log();
-        EmployeeTest(result, 5);
         result = (result - 3 * n) * 256;
-        EmployeeTest(result, 6);
-        EmployeeTest(0, 7);
-        EmployeeTest(0, 8);
-    }
-
-    function getOwner() public view returns (address) {
-        return owner;
-    }
-
-    function test(uint index) public view returns (uint, uint, uint) {
-        return (skills[index].rating, skills[index].skillCode, skills[index].bonusRating);
-    }
-
-    function test2() public view returns (address) {
-        return msg.sender;
     }
 }

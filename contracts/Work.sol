@@ -3,6 +3,7 @@ import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Employee.sol";
 import "./Company.sol";
 
+
 contract Work is Ownable {
 
     uint[] private skillCodes;
@@ -10,7 +11,8 @@ contract Work is Ownable {
     uint private duration;
     uint private startDate;
     uint private hoursWorked;
-    Employee private employee;
+    Employee private employeeContractAddress;
+    address private employee;
     Company private companyContractAddress;
     address private company;
     uint private weekPayment;
@@ -34,7 +36,8 @@ contract Work is Ownable {
     function Work (
         uint[] _skillCodes,
         uint _duration,
-        Employee _empoloyee,
+        address _employee,
+        Employee _employeeContractAddress,
         address _company,
         Company _companyContractAddress,
         uint _weekPayment
@@ -46,7 +49,8 @@ contract Work is Ownable {
 
         skillCodes = _skillCodes;
         duration = _duration;
-        employee = _empoloyee;
+        employee = _employee;
+        employeeContractAddress = _employeeContractAddress;
         company = _company;
         companyContractAddress = _companyContractAddress;
         weekPayment = _weekPayment;
@@ -59,7 +63,7 @@ contract Work is Ownable {
     }
 
     modifier onlyEmployeeOrCompany() {
-        require(msg.sender == company || msg.sender == address(employee));
+        require(msg.sender == company || msg.sender == employee);
         _;
     }
 
@@ -97,7 +101,7 @@ contract Work is Ownable {
         hoursWorked += _hours;
 
         for (uint i = 0; i < skillCodes.length; i++) {
-            employee.addSkillRatingForWork(this, _hours, skillCodes[i]);
+            employeeContractAddress.addSkillRatingForWork(this, _hours, skillCodes[i]);
         }
         companyContractAddress.changeRating();
 
@@ -115,34 +119,29 @@ contract Work is Ownable {
     }
 
     function solveDispute(address winner) public onlyOwner {
-        require(winner == address(employee) || winner == company);
+        require(winner == employee || winner == company);
         require(disputeStatus);
 
         frizzing = -500;
 
-        if (winner == address(employee))
+        if (winner == employee)
             winner.transfer(weekPayment);
 
         company.transfer(this.balance);
-        /* selfdestruct(company); */
     }
 
-    function start() public payable onlyOwner() {
+    function start() public payable onlyOwnerOrCompany() {
         require(frizzing == -100);
         require(msg.value >= weekPayment);
         /* frizzing = int(((now - startDate) / 1 days + 1 days) % 7); */
         startDate = now;
         frizzing = 0;
-        employee.addWork(this, companyContractAddress);
+        employeeContractAddress.addWork(this, companyContractAddress);
         companyContractAddress.addWork(this);
     }
 
     function finish() public onlyOwner {
         frizzing = -200;
-    }
-
-    function test2() public onlyOwner view returns(address) {
-        return employee.test2();
     }
 
     function getWorkData ()
@@ -157,7 +156,10 @@ contract Work is Ownable {
             uint,
             address,
             bool,
-            int
+            int,
+            uint,
+            Company,
+            address
         )
     {
 
@@ -165,12 +167,15 @@ contract Work is Ownable {
             skillCodes,
             startDate,
             duration,
-            employee,
+            employeeContractAddress,
             company,
             weekPayment,
             owner,
             disputeStatus,
-            frizzing
+            frizzing,
+            hoursWorked,
+            companyContractAddress,
+            employee
         );
     }
 
@@ -183,7 +188,7 @@ contract Work is Ownable {
     }
 
     function getEmployee() public view returns(address) {
-        return employee;
+        return employeeContractAddress;
     }
 
     function getCompanyContractAddress() public view returns(address) {
@@ -205,7 +210,7 @@ contract Work is Ownable {
     // R(empl) I
     function getCompanyWorkRating() public view returns(int result) {
         for (uint i = 0; i < skillCodes.length; i++) {
-            result += int(employee.getSkillRatingBySkillCode(skillCodes[i]));
+            result += int(employeeContractAddress.getSkillRatingBySkillCode(skillCodes[i]));
         }
         result *= int(hoursWorked);
         result /= int(skillCodes.length);

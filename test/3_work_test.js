@@ -72,7 +72,7 @@ contract('Work', function(accounts) {
       return instance.getEmployee();
     }).then(address => Employee.at(address))
     .then(instance => instance.getWorks())
-    .then(console.log);
+    .then(data => assert(data.length == 1, "after start there should be 1 work"));
   });
 
   it("should throw an exception if start called twice", function() {
@@ -125,7 +125,7 @@ contract('Work', function(accounts) {
   it("should send week paymnet to employee with code 0", function() {
     let employeeInitBalance = web3.eth.getBalance(employeeContract);
     let contract, employeeInstance, companyInstance, events, companyEvents;
-    let range = 52 * 5;
+    let range = 10;
 
     let printEvent = (error, data) => {
         console.log(`${data.event}: ${data.args.data} index: ${data.args.index}`);
@@ -137,16 +137,16 @@ contract('Work', function(accounts) {
 
     return Work.deployed().then(instance => {
       contract = instance;
-      return Employee.at(employeeContract);
-    }).then(instance => {employeeInstance = instance;
-        events = employeeInstance.allEvents();
-        events.watch(printEvent);
-        return Company.at(companyContract);
-    }).then(instance => {companyInstance = instance;
-        companyEvents = companyInstance.allEvents();
-        companyEvents.watch(printCompany);
-    })
-    .then(data => {
+    //   return Employee.at(employeeContract);
+    // }).then(instance => {employeeInstance = instance;
+    //     events = employeeInstance.allEvents();
+    //     events.watch(printEvent);
+    //     return Company.at(companyContract);
+    // }).then(instance => {companyInstance = instance;
+    //     companyEvents = companyInstance.allEvents();
+    //     companyEvents.watch(printCompany);
+    // })
+    // .then(data => {
       let promises = [];
       for (var i = 0; i < range; i++) {
         promises.push(contract.sendWeekSalary(35, {from: main, value: weekPayment}));
@@ -155,17 +155,18 @@ contract('Work', function(accounts) {
     })
     .then(results => {
       assert.equal(results[0].logs[0].args.code, 0, "sendWeekSalary return " + results[0].logs[0].args.code + " code.");
-
       let employeeEndBalance = web3.eth.getBalance(employeeContract);
-
       assert(employeeEndBalance.eq(employeeInitBalance.plus(weekPayment * range)), "sendWeekSalary wasn't send correct payment to employee.");
-    }).then(data => {
-      return employeeInstance.test(0);
-    }).then(data => {
-      console.log(data[0].div(1000000).toString());
-      console.log(data);
-      events.stopWatching();
-      companyEvents.stopWatching();
+    // }).then(data => {
+    //    return employeeInstance.getSkills();
+    // }).then(console.log)
+    // }).then(data => {
+    //   return employeeInstance.test(0);
+    // }).then(data => {
+    //   console.log(data[0].div(1000000).toString());
+    //   console.log(data);
+    //   events.stopWatching();
+    //   companyEvents.stopWatching();
     //   return employeeInstance.getSkillHistory(4098);
     // }).then(data => {
     //   console.log(data);
