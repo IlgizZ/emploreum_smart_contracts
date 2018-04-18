@@ -2,6 +2,7 @@ pragma solidity ^0.4.11;
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Employee.sol";
 import "./Company.sol";
+import "./Dispute.sol";
 
 
 contract Work is Ownable {
@@ -17,6 +18,7 @@ contract Work is Ownable {
     address private company;
     uint private weekPayment;
     bool private disputeStatus;
+    Dispute private dispute;
     /*
       frizzing time
         [0; 6]      range of freezing delay
@@ -64,6 +66,11 @@ contract Work is Ownable {
 
     modifier onlyEmployeeOrCompany() {
         require(msg.sender == company || msg.sender == employee);
+        _;
+    }
+
+    modifier onlyDisput() {
+        require(Dispute(msg.sender) == dispute);
         _;
     }
 
@@ -116,9 +123,10 @@ contract Work is Ownable {
 
     function disputeStatusOn() public onlyEmployeeOrCompany {
         disputeStatus = true;
+        dispute = new Dispute(employee, company, owner);
     }
 
-    function solveDispute(address winner) public onlyOwner {
+    function solveDispute(address winner) public onlyDisput returns (bool) {
         require(winner == employee || winner == company);
         require(disputeStatus);
 
@@ -128,6 +136,7 @@ contract Work is Ownable {
             winner.transfer(weekPayment);
 
         company.transfer(this.balance);
+        return true;
     }
 
     function start() public payable onlyOwnerOrCompany() {

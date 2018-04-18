@@ -26,7 +26,7 @@ module.exports = function(deployer) {
       return Company.deployed();
     }).then(function(instance) {
       companyInstance = instance;
-      return deployer.deploy(Work, skillCodes, duration, employeeInstance.address, company, companyInstance.address, weekPayment);
+      return deployer.deploy(Work, skillCodes, duration, employee, employeeInstance.address, company, companyInstance.address, weekPayment);
     })
     // .then(() => {
     //   return Work.deployed();

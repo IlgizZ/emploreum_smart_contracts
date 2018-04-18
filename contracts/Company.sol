@@ -16,6 +16,10 @@ contract Company is Ownable {
     address private companyAddress;
     int private rating;
 
+    // code 0 - desput status was set
+    // code 1 - work not found
+    event TurnOnDisputeStatuse(address work, int code);
+
     modifier onlyOwnerOrCompany() {
         require(msg.sender == owner || msg.sender == companyAddress);
         _;
@@ -61,14 +65,16 @@ contract Company is Ownable {
         }
     }
 
-    function dispute(Work work) public onlyOwnerOrCompany returns(bool) {
+    function dispute(Work work) public onlyOwnerOrCompany {
+        int code = 1;
         for (uint i = 0; i < works.length; i++) {
             if (work == works[i]) {
                 work.disputeStatusOn();
-                return true;
+                code = 0;
+                break;
             }
         }
-        return false;
+        TurnOnDisputeStatuse(work, code);
     }
 
     function changeRating() public onlyWork {

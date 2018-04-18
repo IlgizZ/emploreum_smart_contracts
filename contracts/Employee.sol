@@ -36,6 +36,10 @@ contract Employee is Ownable {
     string private email;
     address private employeeAddress;
 
+    // code 0 - desput status was set
+    // code 1 - work not found
+    event TurnOnDisputeStatuse(address work, int code);
+
     modifier onlyOwnerOrEmployee() {
         require(msg.sender == owner || msg.sender == employeeAddress);
         _;
@@ -90,15 +94,17 @@ contract Employee is Ownable {
         }
     }
 
-    function dispute(Work work) public onlyOwnerOrEmployee returns(bool) {
+    function dispute(Work work) public onlyOwnerOrEmployee {
+        int code = 1;
         for (uint i = 0; i < workHistory.length; i++) {
             if (work == workHistory[i].work) {
                 work.disputeStatusOn();
                 workHistory[i].isFinish = true;
-                return true;
+                code = 0;
+                break;
             }
         }
-        return false;
+        TurnOnDisputeStatuse(work, code);
     }
 
     function changeBonusRating(uint skillCode, uint addRating) public onlyOwner {
