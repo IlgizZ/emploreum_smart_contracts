@@ -6,7 +6,6 @@ contract Dispute {
 
     address private employee;
     address private company;
-    address private owner;
     Work private work;
     uint private employeeVotes;
     uint private companyVotes;
@@ -14,43 +13,36 @@ contract Dispute {
 
     function Dispute (
         address _employee,
-        address _company,
-        address _owner
+        address _company
     )
         public
         payable
     {
         employee = _employee;
         company = _company;
-        owner = _owner;
         work = Work(msg.sender);
     }
 
-    function () public payable {
+    function () public payable {}
 
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
-    }
-
-    function vote(address winner, address sender) public onlyOwner {
-        require(!voters[sender] && (employee == winner || company == winner));
+    function vote(address candidate, address sender) public {
+        require(msg.sender == work.getOwner());
+        require(!voters[sender] && (employee == candidate || company == candidate));
         require(employeeVotes + companyVotes <= 100);
         voters[sender] = true;
-        if (winner == employee) {
+
+        if (candidate == employee) {
             employeeVotes++;
         } else {
             companyVotes++;
         }
+
         if (employeeVotes + companyVotes == 101) {
             solveDispute();
         }
     }
 
     function solveDispute() private {
-        require(winner == employee || winner == company);
         address winner = employee;
         if (employeeVotes < companyVotes) {
             winner = company;

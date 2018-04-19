@@ -158,7 +158,9 @@ contract('Work', function(accounts) {
       let employeeEndBalance = web3.eth.getBalance(employee);
       assert(employeeEndBalance.eq(employeeInitBalance.plus(weekPayment * range)),
               `sendWeekSalary() wasn't send correct payment to employee.
-                  expected: ${employeeInitBalance.plus(weekPayment * range)}, but get: ${employeeEndBalance.toString()}`);
+                  expected: ${employeeInitBalance.plus(weekPayment * range)},
+                  but get: ${employeeEndBalance.toString()}`
+      );
     // }).then(data => {
     //    return employeeInstance.getSkills();
     // }).then(console.log)
@@ -197,6 +199,25 @@ contract('Work', function(accounts) {
     });
   });
 
+  // it("should add rating to employee", function() {
+  //   let contract;
+  //
+  //   return Work.deployed().then(function(instance) {
+  //     contract = instance;
+  //     return contract.solveDispute(anotherAccount, {from: company});
+  //
+  //   }).then(function(data) {
+  //
+  //     assert(false, "solveDisput was supposed to throw but didn't.");
+  //
+  //   }).catch(function(error) {
+  //
+  //     if(error.toString().indexOf("VM Exception while") == -1) {
+  //       assert(false, error.toString());
+  //     }
+  //
+  //   });
+  // });
   // it("should throw an exception on solve disput if winner neither employee neither company", function() {
   //   let contract;
   //

@@ -208,6 +208,14 @@ contract Work is Ownable {
         return disputeStatus;
     }
 
+    function getOwner() public view returns (address) {
+        return owner;
+    }
+
+    function getDispute() public view returns (address) {
+        return dispute;
+    }
+
     function hasSkill(uint skillCode) public view returns(bool) {
         for (uint i = 0; i < skillCodes.length; i++) {
             if (skillCodes[i] == skillCode)
